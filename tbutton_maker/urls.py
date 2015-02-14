@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, url, include
-from toolbar_buttons.toolbar_buttons_web.tbutton_maker import views, link_button
+from tbutton_web.tbutton_maker import views, link_button
 
 urlpatterns = patterns('',
     url(r'^$', views.homepage, name='tbutton-homepage'),

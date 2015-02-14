@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from toolbar_buttons.toolbar_buttons_web.tbutton_votes.models import TbuttonRequest, TbuttonRequestComment
+from tbutton_web.tbutton_votes.models import TbuttonRequest, TbuttonRequestComment
 
 from upvotes.views import MakeRequest, RequestList, RequestView, RequestVote, RequestFollow
 from upvotes.forms import get_request_form, get_anon_request_form, get_request_comment_form, get_anon_request_comment_form

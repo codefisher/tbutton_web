@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url, include
 
-from toolbar_buttons.toolbar_buttons_web.tbutton_votes import views
+from tbutton_web.tbutton_votes import views
 from upvotes import views as upvotes_views
 
 urlpatterns = patterns('', 

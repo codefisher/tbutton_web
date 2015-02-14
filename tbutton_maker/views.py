@@ -22,7 +22,7 @@ from django.db.models import F
 
 from toolbar_buttons.config.settings import config
 from toolbar_buttons.builder import button, locales, util, build, custombutton
-from toolbar_buttons.toolbar_buttons_web.tbutton_maker.models import Application, Button, DownloadSession
+from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession
 from codefisher_apps.extension_downloads.models import ExtensionDownload
 from codefisher_apps.downloads.models import DownloadGroup
 

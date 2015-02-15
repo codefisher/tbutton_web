@@ -24,7 +24,7 @@ from django.utils.encoding import force_str
 
 
 from codefisher_apps.favicon_getter.views import get_sized_icons
-from toolbar_buttons.builder.app_versions import get_app_versions
+from mozbutton_sdk.builder.app_versions import get_app_versions
 
 def index(request, template_name="tbutton_maker/link-button.html"):
     data = {

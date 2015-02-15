@@ -20,8 +20,8 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import F
 
-from toolbar_buttons.config.settings import config
-from toolbar_buttons.builder import button, locales, util, build, custombutton
+from mozbutton_sdk.config.settings import config
+from mozbutton_sdk.builder import button, locales, util, build, custombutton
 from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession
 from codefisher_apps.extension_downloads.models import ExtensionDownload
 from codefisher_apps.downloads.models import DownloadGroup
@@ -59,7 +59,6 @@ def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):
     return WebButton(button_folders, buttons, extension_settings, applications)
     
 SETTINGS = dict(config)
-SETTINGS["project_root"] = settings.TBUTTON_DATA
 
 def create_locales():
     locale_folder, locale = util.get_locale_folders("all", SETTINGS)
@@ -204,7 +203,7 @@ def create_custombutton(request):
     application = SETTINGS.get("file_to_application").get(window)[0]
     extension_settings = dict(SETTINGS)
     extension_settings.update({
-        "icon": os.path.join(settings.TBUTTON_DATA, extension_settings.get("icon")),
+        "icon": os.path.join(extension_settings.get("project_root"), extension_settings.get("icon")),
     })
     url = custombutton.custombutton(extension_settings, application, window, button_locale, button)
     result = buttons_page(request, button, button_locale)
@@ -219,8 +218,8 @@ def create_buttons(request, query, log_creation=True):
     extension_settings = dict(SETTINGS)
     extension_settings.update({
         "show_updated_prompt": False,
-        "icon": os.path.join(settings.TBUTTON_DATA, extension_settings.get("icon")),
-        "licence": os.path.join(settings.TBUTTON_DATA, extension_settings.get("licence")),
+        "icon": os.path.join(extension_settings.get("project_root"), extension_settings.get("icon")),
+        "license": os.path.join(extension_settings.get("project_root"), extension_settings.get("license")),
         "buttons": buttons,
     })
 

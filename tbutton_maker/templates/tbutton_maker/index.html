@@ -3,8 +3,8 @@
 {% load cache %}
 
 {% block head_tags %}
-        <link type="text/css" rel="stylesheet" href="{% get_static_prefix %}css/tbutton.css">
-		<script type="text/javascript" src="{% get_static_prefix %}js/tbutton.js"></script>
+        <link type="text/css" rel="stylesheet" href="{% static "css/tbutton.css" %}">
+		<script type="text/javascript" src="{% static "js/tbutton.js" %}"></script>
 {% endblock %}
 
 {% block page_title %}Custom Toolbar Button Maker{% endblock %}
@@ -42,7 +42,7 @@
 						<label for="button-application-{{ value }}">
 							<input{% if value in applications or not applications %} checked{% endif %}
 								id="button-application-{{ value }}" value="{{ value }}" name="button-application" type="checkbox">
-							<img src="{% get_static_prefix %}images/icons/{{ value }}.png"
+							<img src="{% static "images/icons/{{ value }}.png" %}"
 								width="16" height="16" alt="">
 							{% for key, app_names in application_names.items %}{% if key == value %}{{ app_names|join:", " }}{% endif %}{% endfor %}
 						</label>
@@ -62,12 +62,12 @@
 				<label for="{{ button }}-checkbox">
 					<input type="checkbox" {% if button in buttons %}checked="checked" {% endif %}class="button-checkbox" id="{{ button }}-checkbox" name="button" value="{{ button }}">
 					{% for app in apps %}
-						<img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" alt="">
+						<img src="{% static "images/icons/{{ app }}.png" width="16" height="16" alt="" %}">
 					{% endfor %}
 					<span class="button-name">{{ label|safe }}{% if folder != 'data' %} *{% endif %}</span>
 				</label>
 				<div class="button-info">
-					<img src="{% get_static_prefix %}images/pastel-svg/16/{{ icon }}" width="16" height="16" alt="{{ tooltip|safe }}">
+					<img src="{% static "images/pastel-svg/16/{{ icon }}" width="16" height="16" alt="{{ tooltip|safe }}" %}">
 					<div class="button-description">{{ description|linebreaks }}</div>
 				</div>
 			</li>
@@ -84,7 +84,7 @@
     		
     		</ul>
 		</div>
-		<script src="{% get_static_prefix %}/js/list.min.js"></script>
+		<script src="{% static "/js/list.min.js" %}"></script>
 		<script>
 		setSuggestions();
 		var options = {

@@ -51,11 +51,10 @@ class WebButton(button.SimpleButton):
     
 def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):
     button_folders, buttons = util.get_button_folders(buttons_ids, extension_settings)
-    for name, use_setting in (('staging', 'use_staging'), ('pre', 'use_pre')):
-        if extension_settings.get(use_setting):
-            staging_button_folders, staging_buttons = util.get_button_folders(buttons_ids, extension_settings, name)
-            button_folders.extend(staging_button_folders)
-            buttons.extend(staging_buttons)
+    for name in extension_settings.get("projects"):
+        staging_button_folders, staging_buttons = util.get_button_folders(buttons_ids, extension_settings, name)
+        button_folders.extend(staging_button_folders)
+        buttons.extend(staging_buttons)
     return WebButton(button_folders, buttons, extension_settings, applications)
     
 SETTINGS = dict(config)

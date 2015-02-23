@@ -26,7 +26,7 @@ from django.utils.encoding import force_str
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
 
-def index(request, template_name="tbutton_maker/link-button.html"):
+def index(request, template_name="lbutton/index.html"):
     data = {
         "icon_range": range(1,11),
     }
@@ -170,7 +170,7 @@ def build(request, data):
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
     for template in ["button.css", "button.js", "button.xul", "chrome.manifest", "install.rdf", "option_window.xul", "option.xul"]:
         xpi.writestr(template,
-            render_to_string(os.path.join("tbutton_maker", "link", template), data).encode("utf-8"))
+            render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     for name in ["icon-16", "icon-24", "icon-32"]:
         if name == "icon-32":
             file_name = "icon"
@@ -178,7 +178,7 @@ def build(request, data):
             file_name = name
         xpi.writestr("%s.png" % file_name, base64.b64decode(data[name]))
     xpi.writestr(os.path.join("defaults", "preferences", "link.js"), 
-                 render_to_string(os.path.join("tbutton_maker", "link", "preferences.js"), data).encode("utf-8"))
+                 render_to_string(os.path.join("lbutton", "preferences.js"), data).encode("utf-8"))
     xpi.close()
     if data.get('offer-download'):
         responce = HttpResponse(output.getvalue(), content_type="application/octet-stream")
@@ -211,7 +211,7 @@ def update(request):
                 update_query.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
-    return render_to_response("tbutton_maker/link/update.rdf", data, content_type="application/xml+rdf")
+    return render_to_response("lbutton/update.rdf", data, content_type="application/xml+rdf")
 
 def update_legacy(request):
     return HttpResponse('') # we deleted the data, so now we can't do more :(

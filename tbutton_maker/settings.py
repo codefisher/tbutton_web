@@ -1,8 +1,4 @@
 import os
-import toolbar_buttons
-
-#The parent folder of the data folder
-TBUTTON_DATA = os.path.dirname(toolbar_buttons.__file__)
 
 # the icon sets to use for the buttons
 TBUTTON_ICONS = {
@@ -19,3 +15,5 @@ TBUTTON_TAGS_DIR = None
 
 # the default icons to use for the link buttons
 DEFAULT_LINK_ICONS = ""
+
+TBUTTON_CONFIG = ()

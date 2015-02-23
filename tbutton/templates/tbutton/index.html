@@ -18,9 +18,9 @@
       <div class="front-page-cell-content">
         <h2><img src="/static/images/pastel-svg/32/drive-down.png" width="32" height="32" alt="" /> Download</h2>
         <p style="font-size:1.5em;">
-        <img src="{% static "images/icons/browser.png" width="16" height="16" alt="" %}">
+        <img src="{% static "images/icons/browser.png" %}" width="16" height="16" alt="">
             <a href="{{ tbutton.get_absolute_url }}">Install - For Firefox</a> <br />
-        <img src="{% static "images/icons/messenger.png" width="16" height="16" alt="" %}">
+        <img src="{% static "images/icons/messenger.png" %}" width="16" height="16" alt="">
             <a href="{{ tbutton.get_absolute_url }}?download=true" download="{{ tbutton.file_name }}">Download - For Thunderbird</a> 
         </p>
         
@@ -34,7 +34,7 @@
     Once installed to get started using the buttons open the Customize Coolbar window by either right clicking on the toolbar and selecting <strong>Customize</strong> from the pop up menu or going <strong>View</strong> then <strong>Toolbars</strong> then <strong>Customize</strong> and from the window that opens up you can drag the buttons to your toolbar. 
         </p>
         
-{% include "tbutton_maker/snipits/help-new.html" %}
+{% include "tbutton/snipits/help-new.html" %}
 
 <h2>Future Goals</h2>
 
@@ -45,11 +45,11 @@
     <li>Fixing any bugs found or reported.</li>
 </ul>
 
-{% include "tbutton_maker/snipits/release-notes.html" %}
+{% include "tbutton/snipits/release-notes.html" %}
 
 <h1>Releated Projects</h1>
 
-{% include "tbutton_maker/snipits/link-pastel.html" %}
-{% include "tbutton_maker/snipits/format-toolbar.html" %}  
+{% include "tbutton/snipits/link-pastel.html" %}
+{% include "tbutton/snipits/format-toolbar.html" %}  
 
 {% endblock %}

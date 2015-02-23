@@ -2,23 +2,22 @@
 
 import os
 import re
-import operator
 import io
 import datetime
 import hashlib
 import json
+import itertools
 
 from django.contrib.sites.models import Site
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import HttpResponseNotFound, HttpResponse, Http404, QueryDict, HttpResponseRedirect
-from django.views.decorators.csrf import csrf_protect
+from django.http import HttpResponse, Http404, QueryDict
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.utils.html import escape
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import F
+
 
 from mozbutton_sdk.config.settings import config
 from mozbutton_sdk.builder import button, locales, util, build, custombutton
@@ -367,8 +366,6 @@ def old_update(request):
     return redirect("%s?%s" % (reverse('tbutton-update'), query.urlencode()))
 
 def update(request):
-    def flat(l):
-        return [item for sublist in l for item in sublist]
     version = SETTINGS.get("version")
     buttons = request.GET.getlist("button")
     applications = get_applications(request)
@@ -379,9 +376,9 @@ def update(request):
         app_data = None
     else:
         if "all" in applications:
-            app_data = flat(SETTINGS.get("applications_data").values())
+            app_data = itertools.chain(*SETTINGS.get("applications_data").values())
         else:
-            app_data = flat([SETTINGS.get("applications_data").get(app) for app in applications])
+            app_data = itertools.chain(*(SETTINGS.get("applications_data").get(app) for app in applications))
     if channel == "nightly":
         version = "%s.r%s" %(version, util.get_reveision(SETTINGS))
     update_url = "https://%s%s?%s" % (Site.objects.get_current().domain,
@@ -447,22 +444,3 @@ def list_app_buttons(request, app_name, days=30, template_name='tbutton_maker/ap
     data["entries"] = page_it(request, sorted(data["button_data"](), key=button_key))
     data["application"] = app_name
     return render(request, template_name, data)
-
-def installed(request, mode, version):
-    tbutton = get_object_or_404(ExtensionDownload, version=version, group__identifier='{03B08592-E5B4-45ff-A0BE-C1D975458688}')
-    template_name = "tbutton_maker/%s.html" % mode
-    compatibility = [(settings.MOZ_APP_NAMES.get(compat.app_id), compat.min_version, compat.max_version)
-                              for compat in tbutton.compatibility.all() if compat.app_id in settings.MOZ_APP_NAMES]
-    compatibility.sort()
-    def previous_notes(release):
-        while release.previous_release and release.previous_release.release_notes:
-            release = release.previous_release
-            yield release
-    return render(request, template_name, {"tbutton": tbutton, "previous": previous_notes(tbutton), "compatibility": compatibility})
-
-def homepage(request):
-    tbutton = ExtensionDownload.objects.select_related('group').get(group__identifier='{03B08592-E5B4-45ff-A0BE-C1D975458688}', group__latest=F('pk'))
-    compatibility = [(settings.MOZ_APP_NAMES.get(compat.app_id), compat.min_version, compat.max_version)
-                              for compat in tbutton.compatibility.all() if compat.app_id in settings.MOZ_APP_NAMES]
-    compatibility.sort()
-    return render(request, "tbutton_maker/homepage.html", {"tbutton": tbutton, "compatibility": compatibility, "title": "Toolbar Buttons %s" % tbutton.version})

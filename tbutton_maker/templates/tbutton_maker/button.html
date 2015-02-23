@@ -15,14 +15,14 @@
             {{ label }}
         </div>
         <div class="content-box">
-        <h1>        <img src="{% static "images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}" %}">
+        <h1>        <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
 {{ label }}</h1>
         {{ description|linebreaks }}
         
         <p class="compatibility">
         Compatibility:
         {% for app in apps %}
-            <img src="{% static "images/icons/{{ app }}.png" alt="" %}">
+            <img src="{% get_static_prefix %}images/icons/{{ app }}.png" alt="">
             {% for key, app_names in application_names.items %}{% if key == app %} {{ app_names|join:", " }}{% endif %} {% endfor %}
         {% endfor %}
         </p>
@@ -32,12 +32,12 @@
             <input type="hidden" value="{{ application }}" name="application">
             <input type="hidden" value="true" name="add-to-toolbar">
             <button type="submit">
-                <img src="{% static "images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}" %}">
+                <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
                 Install {{ label }}</button>
         </form>
         </div>
         <div class="content-box">
-            <h2 onclick="$('#custombutton').show(500);"><img src="{% static "images/icons/cbicon.png" width="24" height="24" alt="" %}">Create Custom Button</h2>
+            <h2 onclick="$('#custombutton').show(500);"><img src="{% get_static_prefix %}images/icons/cbicon.png" width="24" height="24" alt="">Create Custom Button</h2>
         <form  method="post" id="custombutton" style="display:none;" class="clear" action="{% url 'tbutton-createcustom' %}">
             {% csrf_token %}
             <input type="hidden" value="{{ button }}" name="button">
@@ -65,7 +65,7 @@
                 </label>
             </div>
             <button type="submit">
-                <img src="{% static "images/icons/cbicon.png" width="24" height="24" alt="" %}">
+                <img src="{% static "images/icons/cbicon.png" %}" width="24" height="24" alt="">
                 Create {{ label }} for Custom Button</button>
         </form>
         </div>

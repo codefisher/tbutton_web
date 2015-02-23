@@ -38,12 +38,12 @@
 		{% for item in stats %}
 			<tr>
 				<td>{{ forloop.counter }}</td>
-				<td><img src="{% static "images/pastel-svg/16/{{ item.icon }}" width="16" height="16" alt="{{ item.name|safe }}" %}">
+				<td><img src="{% get_static_prefix %}images/pastel-svg/16/{{ item.icon }}" width="16" height="16" alt="{{ item.name|safe }}">
                     {{ item.label }}</td>
                 <td>{{ item.folder }}</td>
 				<td>                    
 				    {% for app in item.applications %}
-                        <img src="{% static "images/icons/{{ app }}.png" width="16" height="16" alt="" %}">
+                        <img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" alt="">
                     {% endfor %}
                 </td>
 				<td>{{ item.name }}</td>

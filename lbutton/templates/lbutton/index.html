@@ -66,7 +66,7 @@
    {% for i in icon_range %}
    <label for="www-{{ i }}">
      <input type="radio" value="www-{{ i }}"{% if forloop.first %} checked="checked"{% endif %} id="www-{{ i }}" name="default-icon" >
-     <img src="{% static "images/link-icons/www-{{ i }}-24.png" alt="www-{{ i }}" width="24" height="24" %}">
+     <img src="{% get_static_prefix %}images/link-icons/www-{{ i }}-24.png" alt="www-{{ i }}" width="24" height="24">
    </label>
    {% endfor %}
 

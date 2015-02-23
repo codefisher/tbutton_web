@@ -26,6 +26,9 @@ from tbutton_web.tbutton_maker.models import Application, Button, DownloadSessio
 from codefisher_apps.extension_downloads.models import ExtensionDownload
 from codefisher_apps.downloads.models import DownloadGroup
 
+SETTINGS = dict(config)
+util.apply_settings_files(SETTINGS, settings.TBUTTON_CONFIG)
+
 
 class WebButton(button.SimpleButton):
     def __init__(self, folders, buttons, settings, applications):
@@ -57,8 +60,6 @@ def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):
         buttons.extend(staging_buttons)
     return WebButton(button_folders, buttons, extension_settings, applications)
     
-SETTINGS = dict(config)
-
 def create_locales():
     locale_folder, locale = util.get_locale_folders("all", SETTINGS)
     return locales.Locale(SETTINGS, locale_folder, locale, load_properites=False)

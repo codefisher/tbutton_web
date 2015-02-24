@@ -6,7 +6,7 @@ import io
 import hashlib
 import os
 import urllib
-import httplib2
+import time
 
 from PIL import Image
 
@@ -17,7 +17,6 @@ from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
-from django.utils.html import escape
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.utils.encoding import force_str
@@ -40,7 +39,7 @@ def create(request):
             url = "http://" + url
         elif parsed_url[0] not in ["http", "https", "ftp", "ftps", "javascript", "file"]:
             redirect(reverse('lbutton-custom'))
-        button_id = "lbutton-%s" % hashlib.md5(url).hexdigest()
+        button_id = "lbutton-%s-%s" % (hashlib.md5(url).hexdigest(), time.strftime("%y%m%d"))
         icon_type = request.POST.get("icon-type")
         icon_data = {}
         if icon_type == "default":

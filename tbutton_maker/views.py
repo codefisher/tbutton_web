@@ -405,7 +405,7 @@ def update_static(request):
         "update_url": "%s://%s%s" % (scheme, site.domain, extension.get_absolute_url()),
         "extension_id": SETTINGS.get("extension_id"),
     }
-    return render(request, "tbutton_maker/update.rdf", data, content_type="application/xml+rdf")  
+    return render(request, "tbutton_maker/update.rdf", data, content_type="application/xml+rdf")
 
 def make(request):
     return create_buttons(request, request.GET, log_creation=False)

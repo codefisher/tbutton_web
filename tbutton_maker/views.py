@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import itertools
+import time
 
 from django.contrib.sites.models import Site
 from django.shortcuts import render, redirect
@@ -17,7 +18,6 @@ from django.db.models import Count
 from django.utils.html import escape
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
-
 
 from mozbutton_sdk.config.settings import config
 from mozbutton_sdk.builder import button, locales, util, build, custombutton
@@ -250,11 +250,17 @@ def create_buttons(request, query, log_creation=True):
     for key in update_query.keys():
         if key not in allowed_options:
             del update_query[key]
+    update_query.update({
+        "item_id": "%ITEM_ID%",
+        "item_version": "%ITEM_VERSION%",
+        "item_maxapversion": "%ITEM_MAXAPPVERSION%",
+        "app_version": "%APP_VERSION%",
+    })
     icons_size = settings.TBUTTON_ICON_SET_SIZES.get(settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
     if icons_size:
         extension_settings["icon_size"] = icons_size
     extension_settings["chrome_name"] = "toolbar-button-%s" % hashlib.md5("_".join(buttons)).hexdigest()[0:10]
-    extension_settings["extension_id"] = "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest()
+    extension_settings["extension_id"] = "%s-%s@button.codefisher.org" % (hashlib.md5("_".join(sorted(buttons))).hexdigest(), time.strftime("%y%m%d"))
     extension_settings["update_url"] = "https://%s%s?%s" % (Site.objects.get_current().domain,
             reverse("tbutton-update"), escape(update_query.urlencode()))
     if query.get("add-to-toolbar") == "true":
@@ -384,11 +390,13 @@ def update(request):
     update_url = "https://%s%s?%s" % (Site.objects.get_current().domain,
             reverse("tbutton-make-button"), args.urlencode())
     
+    extension_id = request.GET.get("item_id", "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest())
+    
     data = {
         "applications": app_data,
         "version": version,
         "update_url": update_url,
-        "extension_id": "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest(),
+        "extension_id": extension_id,
     }
 
     return render(request, "tbutton_maker/update.rdf", data, content_type="application/xml+rdf")

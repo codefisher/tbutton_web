@@ -61,7 +61,7 @@ def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):
     
 def create_locales():
     locale_folder, locale = util.get_locale_folders("all", SETTINGS)
-    return locales.Locale(SETTINGS, locale_folder, locale, load_properites=False)
+    return locales.Locale(SETTINGS, locale_folder, locale, all_files=True)
 
 LOCALE = create_locales()
 BUTTONS = get_buttons_obj(SETTINGS)
@@ -267,7 +267,7 @@ def create_buttons(request, query, log_creation=True):
         extension_settings["add_to_main_toolbar"] = buttons
         extension_settings["current_version_pref"] = "current.version.%s" % extension_settings["chrome_name"]
     output = io.BytesIO()
-    buttons_obj = build.build_extension(extension_settings, output=output)
+    buttons_obj = build.build_extension(extension_settings, output=output, button_locales=LOCALE)
     content_type = 'application/x-xpinstall'
     disposition = 'filename=%s'
     if query.get('offer-download') == 'true' or ('browser' not in applications):

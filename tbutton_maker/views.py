@@ -267,7 +267,7 @@ def create_buttons(request, query, log_creation=True):
         extension_settings["add_to_main_toolbar"] = buttons
         extension_settings["current_version_pref"] = "current.version.%s" % extension_settings["chrome_name"]
     output = io.BytesIO()
-    buttons, button_locales = build.build_extension(extension_settings, output=output)
+    buttons_obj = build.build_extension(extension_settings, output=output)
     content_type = 'application/x-xpinstall'
     disposition = 'filename=%s'
     if query.get('offer-download') == 'true' or ('browser' not in applications):
@@ -281,9 +281,9 @@ def create_buttons(request, query, log_creation=True):
         session = DownloadSession()
         session.query_string = query.urlencode()
         session.save()
-        for button_record in buttons.buttons():
+        for button_record in buttons_obj.buttons():
             Button.objects.create(name=button_record, session=session)
-        for button_record in buttons.applications():
+        for button_record in buttons_obj.applications():
             Application.objects.create(name=button_record, session=session)
     return responce
 

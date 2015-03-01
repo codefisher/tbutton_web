@@ -134,7 +134,7 @@ def index(request, locale_name=None, applications=None, template_name='tbutton_m
         "buttons": request.GET.getlist('button'),
         "application_names": application_names,
         "local_data": local_data,
-        "icon_sets": [(name, label) for name, (label, _) in settings.TBUTTON_ICONS.items()],
+        #"icon_sets": [(name, label) for name, (label, _) in settings.TBUTTON_ICONS.items()],
         "default_icons": settings.TBUTTON_DEFAULT_ICONS,
         "add_to_toolbar": request.GET.get('add-to-toolbar'),
         "offer_download": request.GET.get('offer-download'),

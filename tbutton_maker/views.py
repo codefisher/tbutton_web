@@ -204,7 +204,7 @@ def create_custombutton(request):
     extension_settings.update({
         "icon": os.path.join(extension_settings.get("project_root"), extension_settings.get("icon")),
     })
-    url = custombutton.custombutton(extension_settings, application, window, button_locale, button)
+    url = custombutton.custombutton(extension_settings, application, window, button_locale, button, button_locales=LOCALE)
     result = buttons_page(request, button, button_locale)
     response = HttpResponse(result.content, status=302)
     response['Location'] = url

@@ -386,7 +386,7 @@ def update(request):
         else:
             app_data = itertools.chain(*(SETTINGS.get("applications_data").get(app) for app in applications))
     if channel == "nightly":
-        version = "%s.r%s" %(version, util.get_git_reveision(SETTINGS))
+        version = "%s.r%s" %(version, util.get_git_revision(SETTINGS))
     update_url = "https://%s%s?%s" % (Site.objects.get_current().domain,
             reverse("tbutton-make-button"), args.urlencode())
     

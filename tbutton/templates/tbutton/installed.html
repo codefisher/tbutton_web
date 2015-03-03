@@ -30,10 +30,10 @@
             To find out more information about each of the buttons, please see our <a href="/toolbar_button/button_list/"><strong>Button List</strong></a> which has descriptions of all the buttons.
         </p>
         {% endblock %}
-        {% block content_adds %} {{ block.super }} {% endblock %}
       </div>
      </div>
     </div>
+    {% block content_adds %} {{ block.super }} {% endblock %}
     {% if tbutton.version != tbutton.group.latest.version %}
     <div class="front-page-row">
      <div class="front-page-cell">

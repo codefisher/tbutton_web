@@ -37,7 +37,12 @@
     padding:0;
 }
 
-.button-info img,
+#button-list li img, 
+#application-list li img {
+	padding:0 2px;
+}
+
+#button-list .button-info img,
 #button_list img.button-icon {
     float:left;
     margin:0 5px;

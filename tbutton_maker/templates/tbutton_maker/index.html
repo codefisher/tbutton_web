@@ -55,7 +55,6 @@
 	<fieldset id="button-list-field">
 		<legend>Buttons</legend>
 		<div class="content-box center" style="margin:1em"><label for="filter-list">Filter <input class="search" type="text" id="filter-list" placeholder="Filter" /></label></div>
-		<ul class="pagination-top pagination"></ul>
 		<ul id="button-list" class="list">
 		{% cache 600 tbutton_create applications locale buttons %}
 		{% for button, apps, label, tooltip, icon, description, folder in button_data %}
@@ -75,7 +74,6 @@
 		{% endfor %}
 		{% endcache %}
 		</ul>
-		<ul class="pagination-bottom pagination"></ul>
 		<p>
 		    * These buttons are not in the official release, but will be added if they are popular here.
 		</p>
@@ -87,16 +85,11 @@
     		</ul>
 		</div>
 		<script src="{% static "js/list.min.js" %}"></script>
-		<script src="{% static "js/list.pagination.min.js" %}"></script>
 		<script>
 		setSuggestions();
 		var options = {
           valueNames: ['button-name', 'button-description'],
-          page: 40,
-          plugins: [
-            ListPagination({outerWindow: 5, paginationClass: "pagination-top",}),
-            ListPagination({outerWindow: 5, paginationClass: "pagination-bottom",})
-          ]
+          page: 500
         };        
         var buttonList = new List('button-list-field', options);
         </script>

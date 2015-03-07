@@ -30,7 +30,7 @@
 			<span class="button-name">
 				<span class="compatibility">
 				{% for app in apps %}
-					<img src="{% get_static_prefix %}images/icons/{{ app }}.png" alt=""">
+					<img src="{% get_static_prefix %}images/icons/{{ app }}.png" alt="">
 				{% endfor %}
 				</span>
 				<a href="{% url 'tbutton-button' button_id=button %}">{{ label|safe }}</a>

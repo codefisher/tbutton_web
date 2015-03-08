@@ -118,7 +118,7 @@ def lazy_button_list(applications, locale_str):
         return button_data
     return _func
 
-def index(request, locale_name=None, applications=None, template_name='tbutton_maker/index.html'):
+def index(request, locale_name=None, applications='browser', template_name='tbutton_maker/index.html'):
     locale_name = get_locale_name(request, locale_name)
     applications = get_applications(request, applications)
     locale_str = locale_str_getter(locale_name)

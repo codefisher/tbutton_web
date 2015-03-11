@@ -102,7 +102,8 @@ function setOtherLabels(item) {
 	}
 }
 
-function createShareLink() {
+function submitingButtonMaker() {
+	buttonList.search();
 	var args = $('#tbutton-form').serialize();
 	$('#share-filedset').show();
 	var loc = document.location;

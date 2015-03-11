@@ -11,7 +11,7 @@
 
 {% block content %}
 
-<form onsubmit="createShareLink();" method="get" action="{% url 'tbutton-create' %}" id="tbutton-form" class="form-field">
+<form onsubmit="submitingButtonMaker();" method="get" action="{% url 'tbutton-create' %}" id="tbutton-form" class="form-field">
    {% if buttons %}
     <fieldset>
         <legend>Create</legend>

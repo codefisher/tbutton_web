@@ -57,12 +57,12 @@
 		<div class="content-box center" style="margin:1em"><label for="filter-list">Filter <input class="search" type="text" id="filter-list" placeholder="Filter" /></label></div>
 		<ul id="button-list" class="list">
 		{% cache 600 tbutton_create applications locale buttons %}
-		{% for button, apps, label, tooltip, icon, description, folder in button_data %}
+		{% for button, apps, label, tooltip, icon, description, folder, enabled_apps in button_data %}
 			<li class="button-item" id="{{ button }}-list-item">
 				<label for="{{ button }}-checkbox">
 					<input type="checkbox" {% if button in buttons %}checked="checked" {% endif %}class="button-checkbox" id="{{ button }}-checkbox" name="button" value="{{ button }}">
 					{% for app in apps %}
-						<img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" alt="">
+						<img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" {% if app not in enabled_apps %}style="filter: grayscale(100%);"{% endif %} alt="">
 					{% endfor %}
 					<span class="button-name">{{ label|safe }}{% if folder != 'data' %} *{% endif %}</span>
 				</label>

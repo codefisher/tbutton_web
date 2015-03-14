@@ -24,6 +24,7 @@ from django.utils.encoding import force_str
 
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
+from tbutton_web.lbutton.models import LinkButtonDownload, LinkButton
 
 VERSION = "1.1.0"
 
@@ -105,6 +106,8 @@ def create(request):
         key = 'lbytton-%s' % hashlib.sha1(url_data).hexdigest()
         cache.set(key, url_data, 3*60*60)
         request.session["lbutton-key"] = key
+        download_session = LinkButtonDownload(query_string=request.POST.urlencode(), link=url, title=request.POST.get("label"))
+        download_session.save()
         return build(request, data)
     else:
         if request.session.get("lbutton-key"):
@@ -124,7 +127,7 @@ def make(request):
 def build(request, data):
     update_query = QueryDict("").copy()
     if 'button_mode' not in data:
-        data['button_mode'] = '0'
+        data['button_mode'] = 0
     data["version"] = VERSION
     update_query.update(data)
     for key in ['offer-download', 'icon-16', 'icon-24', 'icon-32']:

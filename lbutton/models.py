@@ -17,7 +17,8 @@ class LinkButton(models.Model):
     url = models.TextField()
     chrome_name = models.CharField(max_length=100)
     
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
+    downloads = models.IntegerField()
     
     icon_16 = models.ImageField(blank=False, null=False, upload_to=image_path)
     icon_24 = models.ImageField(blank=False, null=False, upload_to=image_path)

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+{% load show_pagination %}
+
+{% block head_tags %}
+        <link type="text/css" rel="stylesheet" href="{% static "css/tbutton.css" %}">
+        <script type="text/javascript" src="{% static "js/tbutton.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+
+    <h1><img src="{{ button.icon_32.url }}" alt="" width="32" height="32"> {{ button.name }}</h2>
+    <p>{{ button.description }}</p>
+    <form method="get" action="{% url 'lbutton-button-make' button=button.extension_id %}">
+    <fieldset>
+        <legend>Settings</legend>
+        
+        <div class="form-field">
+            <p>
+                The links can open in a number of different ways.  This can be changed latter in the options window.
+             </p>
+           <div>
+           <label for="open-default">
+               <input type="radio" value="0" checked="checked" id="open-default" name="open-method">  Open in current tab, and new tab on middle click.
+           </label>
+           </div>
+           <div>
+           <label for="open-newtab">
+               <input type="radio" value="1" id="open-newtab" name="open-method">  Always open in new tab.
+           </label>
+           </div>
+           <div>
+           <label for="open-current">
+               <input type="radio" value="2" id="open-current" name="open-method">  Always open in current tab.
+           </label>
+           </div>
+        </div>
+        
+        <div class="form-field">
+            <p>
+                Normally extensions get installed into Firefox, but if check this box
+                you will be prompted to download the extension instead.
+            </p>
+            <label>
+                <input type="checkbox" name="offer-download" value="true">
+                    Offer for download instead of installing.
+            </label>
+        </div>
+    </fieldset>
+        <button><img src="{{ button.icon_16.url }}" alt="" width="16" height="16"> Install {{ button.name }}</button>
+    </form>
+    
+    <p>
+        If you like this, check out our <a href="/toolbar_button/link-button/">other link buttons</a>, or try our <a href="/toolbar_button/link-button-maker/">Custom Link Button Maker</a>.
+    </p>
+
+{% endblock %}

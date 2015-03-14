@@ -11,8 +11,7 @@ import time
 from PIL import Image
 
 from django.contrib.sites.models import Site
-from django.template import RequestContext
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import render_to_string
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, QueryDict
@@ -20,11 +19,11 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
 from django.utils.encoding import force_str
-
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
-from tbutton_web.lbutton.models import LinkButtonDownload, LinkButton
+from tbutton_web.lbutton.models import LinkButtonDownload, LinkButton, LinkButtonBuild
 
 VERSION = "1.1.0"
 
@@ -32,7 +31,7 @@ def index(request, template_name="lbutton/index.html"):
     data = {
         "icon_range": range(1,11),
     }
-    return render_to_response(template_name, data, context_instance=RequestContext(request))
+    return render(request, template_name, data)
 
 def create(request):
     if request.method == 'POST':
@@ -124,11 +123,8 @@ def create(request):
 def make(request):
     return build(request, request.GET)
 
-def build(request, data):
+def create_update_url(data, domain, url_name):
     update_query = QueryDict("").copy()
-    if 'button_mode' not in data:
-        data['button_mode'] = 0
-    data["version"] = VERSION
     update_query.update(data)
     for key in ['offer-download', 'icon-16', 'icon-24', 'icon-32']:
         if key in update_query:
@@ -140,12 +136,17 @@ def build(request, data):
         "app_version": "%APP_VERSION%",
     }
     extra_query = "&".join("%s=%s" % (key, value) for key, value in app_data.items())
+    return "https://%s%s?%s&%s" % (domain, reverse(url_name), update_query.urlencode(), extra_query)
+
+def build(request, input_data):
+    data = dict(input_data)
+    if 'button_mode' not in data:
+        data['button_mode'] = 0
+    data["version"] = VERSION
     domain = Site.objects.get_current().domain
-    data = dict(data.items())
     icon_type = data.get("icon_type", "custom")
     if icon_type != "custom":
-        data["update_url"] = "https://%s%s?%s&%s" % (domain, reverse("lbutton-update"),
-                update_query.urlencode(), extra_query)
+        data["update_url"] = create_update_url(data, domain, "lbutton-update")
         if "icon-16" not in data:
             if icon_type == "favicon":
                 icons = get_sized_icons(data["button_url"], [16, 24, 32])
@@ -167,37 +168,106 @@ def build(request, data):
                         with open(icon_path) as fp:
                             data["icon-%s" % size] = base64.encodestring(fp.read())
     data.update({
-        "home_page": "http://%s%s" % (domain, reverse("lbutton-custom")),
+        "home_page": "https://%s%s" % (domain, reverse("lbutton-custom")),
         # firefox max version number
         "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "35.0"),
     })
     output = io.BytesIO()
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
-    for template in ["button.css", "button.js", "button.xul", "chrome.manifest", "install.rdf", "option_window.xul", "option.xul"]:
-        xpi.writestr(template,
-            render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
+    write_xpi_files(data, xpi)
     for name in ["icon-16", "icon-24", "icon-32"]:
-        if name == "icon-32":
-            file_name = "icon"
-        else:
-            file_name = name
+        file_name = name if name != "icon-32" else "icon"
         xpi.writestr("%s.png" % file_name, base64.b64decode(data[name]))
-    xpi.writestr(os.path.join("defaults", "preferences", "link.js"), 
-                 render_to_string(os.path.join("lbutton", "preferences.js"), data).encode("utf-8"))
     xpi.close()
-    if data.get('offer-download'):
-        responce = HttpResponse(output.getvalue(), content_type="application/octet-stream")
-        responce['Content-Disposition'] = 'attachment; filename=%(button_id)s.xpi' % data
+    return get_xpi_response(data.get('offer-download'), data, output)
+
+def get_entries_for_page(paginator, page):
+    try:
+        page = int(page)
+    except ValueError:
+        page = 1
+    try:
+        return paginator.page(page)
+    except (EmptyPage, InvalidPage) as e:
+        raise e # this must be handeled
+    
+def buttons(request, page=1):
+    entries_list = LinkButton.objects.all().order_by('featured', 'downloads')
+    paginator = Paginator(entries_list, 10)
+    try:
+        entries = get_entries_for_page(paginator, page)
+    except (EmptyPage, InvalidPage):
+        if page != 1:
+            return redirect(reverse("lbutton-buttons", kwargs={"page": paginator.num_pages}))
+    data =  {
+        "link_button": entries_list[0],
+        "entries": entries,
+        "title": "Link Buttons",
+    }
+    return render(request, 'lbutton/buttons.html' , data)
+
+def button(request, button):
+    button_obj = get_object_or_404(LinkButton, extension_id=button)
+    data = {
+        "button": button_obj,
+        "title": button_obj.name,
+    }
+    return render(request, 'lbutton/button.html' , data)
+
+def button_update(request, button):
+    max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
+    domain = Site.objects.get_current().domain
+    data = {
+        "version": VERSION,
+        "max_version": max_version,
+        "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-button-make", kwargs={"button": button}),
+                request.GET.urlencode()),
+        "extension_uuid": request.GET.get("extension_uuid")
+    }
+    return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
+
+def write_xpi_files(data, xpi):
+    for template in ["button.css", "button.js", "button.xul", "chrome.manifest", "install.rdf", "option_window.xul", "option.xul"]:
+        xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
+    xpi.writestr(os.path.join("defaults", "preferences", "link.js"), render_to_string(os.path.join("lbutton", "preferences.js"), data).encode("utf-8"))
+
+def get_xpi_response(offer_download, data, output):
+    if offer_download:
+        response = HttpResponse(output.getvalue(), content_type="application/octet-stream")
+        response['Content-Disposition'] = 'attachment; filename=%(button_id)s.xpi' % data
     else:
-        responce = HttpResponse(output.getvalue(), content_type="application/x-xpinstall")
-        responce['Content-Disposition'] = 'filename=%(button_id)s.xpi' % data
-    return responce
+        response = HttpResponse(output.getvalue(), content_type="application/x-xpinstall")
+        response['Content-Disposition'] = 'filename=%(button_id)s.xpi' % data
+    return response
 
-def compare_versions(version, other):
-    def _convert(ver):
-        return [int(item) if item.isdigit() else item for item in ver.split(".")]
-    return _convert(version) < _convert(other)
-
+def button_make(request, button):
+    button_obj = get_object_or_404(LinkButton, extension_id=button)
+    extension_uuid = "lbutton-%s-%s@codefisher.org" % (button_obj.extension_id, time.strftime("%y%m%d"))
+    offer_download = request.GET.get("offer-download") == "true"
+    domain = Site.objects.get_current().domain
+    data = {
+        "version": VERSION,
+        "button_id": button_obj.chrome_name,
+        "button_url": button_obj.url,
+        "button_mode": int(request.GET.get("open-method", 0)),
+        "chrome_name": button_obj.chrome_name,
+        "extension_uuid": extension_uuid,
+        "name": button_obj.name,
+        "button_label": button_obj.label,
+        "button_tooltip": button_obj.tooltip,
+        "home_page": "https://%s%s" % (domain, reverse("lbutton-buttons")),
+        "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.0"),
+        "update_url": create_update_url(request.GET, domain, "lbutton-button-update")
+    }
+    output = io.BytesIO()
+    xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
+    write_xpi_files(data, xpi)
+    xpi.write(button_obj.icon_16.path, "icon-16.png")
+    xpi.write(button_obj.icon_24.path, "icon-24.png")
+    xpi.write(button_obj.icon_32.path, "icon.png")
+    xpi.close()
+    return get_xpi_response(offer_download, data, output)
+        
 def update(request):
     max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
     domain = Site.objects.get_current().domain
@@ -208,7 +278,7 @@ def update(request):
                 request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
-    return render_to_response("lbutton/update.rdf", data, content_type="application/xml+rdf")
+    return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
 
 def update_legacy(request):
     return HttpResponse('') # we deleted the data, so now we can't do more :(

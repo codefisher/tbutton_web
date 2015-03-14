@@ -25,6 +25,8 @@ from django.utils.encoding import force_str
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
 
+VERSION = "1.1.0"
+
 def index(request, template_name="lbutton/index.html"):
     data = {
         "icon_range": range(1,11),
@@ -123,6 +125,7 @@ def build(request, data):
     update_query = QueryDict("").copy()
     if 'button_mode' not in data:
         data['button_mode'] = '0'
+    data["version"] = VERSION
     update_query.update(data)
     for key in ['offer-download', 'icon-16', 'icon-24', 'icon-32']:
         if key in update_query:
@@ -193,21 +196,13 @@ def compare_versions(version, other):
     return _convert(version) < _convert(other)
 
 def update(request):
-    max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "4.0.*")
-    update_query = QueryDict("").copy()
-    update_query.update(request.GET)
-    if compare_versions(request.GET.get("item_maxapversion"), request.GET.get("app_version")):
-        _version = request.GET.get("version", request.GET.get("item_version", "1.0")).split(".")
-        _version[-1] = str(int(_version[-1]) + 1)
-        version = ".".join(_version)
-    else:
-        version = request.GET.get("version", request.GET.get("item_version", "1.0"))
+    max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
     domain = Site.objects.get_current().domain
     data = {
-        "version": version,
-        "max_version":max_version,
+        "version": VERSION,
+        "max_version": max_version,
         "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-make"),
-                update_query.urlencode()),
+                request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
     return render_to_response("lbutton/update.rdf", data, content_type="application/xml+rdf")

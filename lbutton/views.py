@@ -266,6 +266,8 @@ def button_make(request, button):
     xpi.write(button_obj.icon_24.path, "icon-24.png")
     xpi.write(button_obj.icon_32.path, "icon.png")
     xpi.close()
+    session = LinkButtonBuild(link_button=button_obj)
+    session.save()
     return get_xpi_response(offer_download, data, output)
         
 def update(request):

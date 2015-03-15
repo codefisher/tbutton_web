@@ -9,8 +9,8 @@ urlpatterns = patterns('',
     
     url(r'^link-button/$', views.buttons, name='lbutton-buttons'),
     url(r'^link-button/(?P<page>[0-9]+)/$', views.buttons, name='lbutton-buttons'),
-    url(r'^link-button/make/(?P<button>[\w]+)/$', views.button_make, name='lbutton-button-make'),
-    url(r'^link-button/(?P<button>[\w]+)/$', views.button, name='lbutton-button'),
+    url(r'^link-button/make/(?P<button>[\w-]+)/$', views.button_make, name='lbutton-button-make'),
+    url(r'^link-button/(?P<button>[\w-]+)/$', views.button, name='lbutton-button'),
     url(r'^link-button/update.rdf', views.button_update, name='lbutton-button-update'),
     
     url(r'^update-clb', views.update_legacy, name='lbutton-update-legacy'),

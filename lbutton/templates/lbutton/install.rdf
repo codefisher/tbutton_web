@@ -14,7 +14,7 @@
 <em:id>{{ extension_uuid }}</em:id>
 <em:name>{{ name }}</em:name>
 <em:version>{{ version }}</em:version>
-<em:description>A Customized Link Toolbar Button.</em:description>
+<em:description>{% if description %}{{ description }}{% else %}A Customized Link Toolbar Button.{% endif %}</em:description>
 <em:creator>Michael Buckley</em:creator>
 <em:iconURL>chrome://{{ chrome_name }}/skin/icon.png</em:iconURL>
 <em:homepageURL>{{ home_page }}</em:homepageURL>

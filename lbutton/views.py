@@ -15,6 +15,7 @@ from subprocess import Popen, PIPE
 
 from PIL import Image
 
+from django.db import models
 from django.contrib.sites.models import Site
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import render_to_string
@@ -332,6 +333,7 @@ def get_xpi_response(offer_download, data, output, firefox=True,):
 
 def button_make(request, button):
     button_obj = get_object_or_404(LinkButton, extension_id=button)
+    LinkButton.objects.filter(pk=button_obj.pk).update(downloads=models.F('downloads') + 1)
     extension_uuid = "lbutton-%s-%s@codefisher.org" % (button_obj.extension_id, time.strftime("%y%m%d"))
     offer_download = request.GET.get("offer-download") == "true"
     domain = Site.objects.get_current().domain

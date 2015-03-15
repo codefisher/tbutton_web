@@ -59,7 +59,7 @@ function updateSuggestions() {
 
 function loadFavIcons() {
 	$.ajax({
-		url: '/toolbar_button/get_icons/',
+		url: '/toolbar_button/get-icons/',
 		type: "POST",
 		data: $('#link-button-form').serialize(),
 		dataType: "html",

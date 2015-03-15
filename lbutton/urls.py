@@ -14,5 +14,5 @@ urlpatterns = patterns('',
     url(r'^link-button/update.rdf', views.button_update, name='lbutton-button-update'),
     
     url(r'^update-clb', views.update_legacy, name='lbutton-update-legacy'),
-    url(r'^get_icons/', views.favicons, name='lbutton-custom-favicons'),
+    url(r'^get-icons/', views.favicons, name='lbutton-custom-favicons'),
 )

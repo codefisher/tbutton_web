@@ -19,7 +19,8 @@
     <h2><a href="{% url 'lbutton-button' button=entry.extension_id %}"><img src="{{ entry.icon_24.url }}"  alt="" width="24" height="24"> {{ entry.name }}</a></h2>
     <p>{{ entry.description }}</p>
     <form method="get" action="{% url 'lbutton-button-make' button=entry.extension_id %}">
-        <button><img src="{{ entry.icon_16.url }}"  alt="" width="16" height="16"> Install {{ entry.name }}</button>
+        <button name="firefox"><img src="{{ entry.icon_16.url }}"  alt="" width="16" height="16"> Install {{ entry.name }} for Firefox</button>
+        &nbsp; <button name="chrome"><img src="{{ entry.icon_16.url }}" alt="" width="16" height="16"> Install {{ entry.name }} for Chrome</button>
     </form>
 {% endfor %}
 

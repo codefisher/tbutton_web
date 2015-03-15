@@ -7,6 +7,11 @@ import hashlib
 import os
 import urllib
 import time
+import json
+import tempfile
+
+from array import array
+from subprocess import Popen, PIPE
 
 from PIL import Image
 
@@ -100,6 +105,8 @@ def create(request):
             "button_tooltip": force_str(request.POST.get("tooltip")),
             "offer-download": request.POST.get("offer-download") == "true",
         }
+        if "chrome" in request.POST:
+            data["chrome"] = True
         data.update(icon_data)
         url_data = urllib.urlencode(data)
         key = 'lbytton-%s' % hashlib.sha1(url_data).hexdigest()
@@ -123,12 +130,14 @@ def create(request):
 def make(request):
     return build(request, request.GET)
 
-def create_update_url(data, domain, url_name):
+def create_update_url(request, data, domain, url_name):
     update_query = QueryDict("").copy()
     update_query.update(data)
     for key in ['offer-download', 'icon-16', 'icon-24', 'icon-32']:
         if key in update_query:
             del update_query[key]
+    if "chrome" in request.GET:
+        return "https://%s%s?%s" % (domain, reverse(url_name), update_query.urlencode())
     app_data = {
         "item_id": "%ITEM_ID%",
         "item_version": "%ITEM_VERSION%",
@@ -146,7 +155,7 @@ def build(request, input_data):
     domain = Site.objects.get_current().domain
     icon_type = data.get("icon_type", "custom")
     if icon_type != "custom":
-        data["update_url"] = create_update_url(data, domain, "lbutton-update")
+        data["update_url"] = create_update_url(request, data, domain, "lbutton-update")
         if "icon-16" not in data:
             if icon_type == "favicon":
                 icons = get_sized_icons(data["button_url"], [16, 24, 32])
@@ -163,7 +172,7 @@ def build(request, input_data):
                 if not icon_name in ["www-%s" % i for i in range(1,11)]:
                     icon_name = "www-1"
                 for size in [16, 24, 32]:
-                    icon_path = os.path.join(settings.BASE_DIR, settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
+                    icon_path = os.path.join(settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
                     if os.path.exists(icon_path):
                         with open(icon_path) as fp:
                             data["icon-%s" % size] = base64.encodestring(fp.read())
@@ -174,12 +183,15 @@ def build(request, input_data):
     })
     output = io.BytesIO()
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
-    write_xpi_files(data, xpi)
     for name in ["icon-16", "icon-24", "icon-32"]:
         file_name = name if name != "icon-32" else "icon"
         xpi.writestr("%s.png" % file_name, base64.b64decode(data[name]))
-    xpi.close()
-    return get_xpi_response(data.get('offer-download'), data, output)
+    if "chrome" in input_data:
+        output = write_crx_files(data, xpi, output)
+    else:
+        write_xpi_files(data, xpi)
+        xpi.close()
+    return get_xpi_response(data.get('offer-download'), data, output, "chrome" not in  input_data)
 
 def get_entries_for_page(paginator, page):
     try:
@@ -224,20 +236,98 @@ def button_update(request, button):
                 request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
-    return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
+    if "chrome" in request.GET:
+        return render(request, "lbutton/update.xml", data, content_type="application/xml")
+    else:
+        return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
+
 
 def write_xpi_files(data, xpi):
     for template in ["button.css", "button.js", "button.xul", "chrome.manifest", "install.rdf", "option_window.xul", "option.xul"]:
         xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     xpi.writestr(os.path.join("defaults", "preferences", "link.js"), render_to_string(os.path.join("lbutton", "preferences.js"), data).encode("utf-8"))
 
-def get_xpi_response(offer_download, data, output):
-    if offer_download:
+
+def build_id(pub_key_der):
+    sha = hashlib.sha256(pub_key_der).hexdigest()
+    prefix = sha[:32]
+    reencoded = []
+    ord_a = ord('a')
+    for old_char in prefix:
+        code = int(old_char, 16)
+        new_char = chr(ord_a + code)
+        reencoded.append(new_char)
+    return "".join(reencoded)
+
+def write_crx_files(data, xpi, input):
+    _, pem = tempfile.mkstemp()
+    Popen(["openssl", "genrsa", "-out", pem, "2048"], stdout=PIPE).stdout.read()
+    xpi.write(pem, "key.pem")
+    # Convert the PEM key to DER (and extract the public form) for inclusion in the CRX header
+    derkey = Popen(["openssl", "rsa", "-pubout", "-inform", "PEM", "-outform", "DER", "-in", pem], stdout=PIPE).stdout.read()
+
+    manifest = {
+        "name": data["name"],
+         "description": data.get("description", "A Customized Link Toolbar Button."),
+         "version": VERSION,
+         "icons": {
+              "128": "icon.png",
+              "24": "icon-24.png",
+              "16": "icon-16.png",
+         },
+         "update_url": data["update_url"] + "&extension_uuid=" + build_id(derkey),
+         "background": {
+             "scripts": ["background.js"]
+         },
+         "permissions": [
+             "tabs", "http://*/*", "https://*/*", "storage"
+         ],
+         "browser_action": {
+             "default_title": data["button_tooltip"],
+             "default_icon": "icon-16.png",
+         },
+         "options_page": "options.html",
+         "options_ui": {
+              "page": "options.html",
+              "chrome_style": True,
+         },
+         "manifest_version": 2
+    }
+    for template in ["background.js", "options.js", "options.html"]:
+        xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
+    xpi.writestr("manifest.json", json.dumps(manifest, indent=4, separators=(',', ': ')))
+    xpi.close()
+
+    value = input.getvalue()
+    _, input_file = tempfile.mkstemp()
+    with open(input_file, "w") as fp:
+        fp.write(value)
+    
+    # Sign the zip file with the private key in PEM format
+    signature = Popen(["openssl", "sha1", "-sign", pem, input_file], stdout=PIPE).stdout.read()
+    os.remove(input_file)
+    os.remove(pem)
+    output = io.BytesIO()
+    output.write("Cr24")
+    header = array("i")
+    header.append(2)
+    header.append(len(derkey))
+    header.append(len(signature))
+    output.write(header.tostring())
+    output.write(derkey)
+    output.write(signature)
+    output.write(value)
+    return output
+    
+def get_xpi_response(offer_download, data, output, firefox=True,):
+    data["file_type"] = "xpi" if firefox else "crx"
+    if offer_download or not firefox:
         response = HttpResponse(output.getvalue(), content_type="application/octet-stream")
-        response['Content-Disposition'] = 'attachment; filename=%(button_id)s.xpi' % data
+        response['Content-Disposition'] = 'attachment; filename=%(button_id)s.%(file_type)s' % data
     else:
-        response = HttpResponse(output.getvalue(), content_type="application/x-xpinstall")
-        response['Content-Disposition'] = 'filename=%(button_id)s.xpi' % data
+        content_type = "application/x-xpinstall" if firefox else "application/x-chrome-extension"
+        response = HttpResponse(output.getvalue(), content_type=content_type)
+        response['Content-Disposition'] = 'filename=%(button_id)s.%(file_type)s' % data
     return response
 
 def button_make(request, button):
@@ -249,6 +339,7 @@ def button_make(request, button):
         "version": VERSION,
         "button_id": button_obj.chrome_name,
         "button_url": button_obj.url,
+        "description": button_obj.description,
         "button_mode": int(request.GET.get("open-method", 0)),
         "chrome_name": button_obj.chrome_name,
         "extension_uuid": extension_uuid,
@@ -257,18 +348,21 @@ def button_make(request, button):
         "button_tooltip": button_obj.tooltip,
         "home_page": "https://%s%s" % (domain, reverse("lbutton-buttons")),
         "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.0"),
-        "update_url": create_update_url(request.GET, domain, "lbutton-button-update")
+        "update_url": create_update_url(request, request.GET, domain, "lbutton-button-update")
     }
     output = io.BytesIO()
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
-    write_xpi_files(data, xpi)
     xpi.write(button_obj.icon_16.path, "icon-16.png")
     xpi.write(button_obj.icon_24.path, "icon-24.png")
     xpi.write(button_obj.icon_32.path, "icon.png")
-    xpi.close()
+    if "chrome" in request.GET:
+        output = write_crx_files(data, xpi, output)
+    else:
+        write_xpi_files(data, xpi)
+        xpi.close()
     session = LinkButtonBuild(link_button=button_obj)
     session.save()
-    return get_xpi_response(offer_download, data, output)
+    return get_xpi_response(offer_download, data, output, "chrome" not in request.GET)
         
 def update(request):
     max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
@@ -280,7 +374,10 @@ def update(request):
                 request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
-    return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
+    if "chrome" in request.GET:
+        return render(request, "lbutton/update.xml", data, content_type="application/xml")
+    else:
+        return render(request, "lbutton/update.rdf", data, content_type="application/xml+rdf")
 
 def update_legacy(request):
     return HttpResponse('') # we deleted the data, so now we can't do more :(

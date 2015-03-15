@@ -47,8 +47,12 @@
             </label>
         </div>
     </fieldset>
-        <button><img src="{{ button.icon_16.url }}" alt="" width="16" height="16"> Install {{ button.name }}</button>
+        <button name="firefox"><img src="{{ button.icon_16.url }}" alt="" width="16" height="16"> Install {{ button.name }} for Firefox</button>
+        &nbsp; <button name="chrome"><img src="{{ button.icon_16.url }}" alt="" width="16" height="16"> Install {{ button.name }} for Chrome</button>
     </form>
+    <p>
+        Please note, for the Chrome extension, you have to download the file, and then drag it to extensions window.  It can't be installed directly because of security reasons (tested on Linux).
+    </p>
     
     <p>
         If you like this, check out our <a href="/toolbar_button/link-button/">other link buttons</a>, or try our <a href="/toolbar_button/link-button-maker/">Custom Link Button Maker</a>.

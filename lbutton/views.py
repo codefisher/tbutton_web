@@ -228,8 +228,9 @@ def button(request, button):
     }
     return render(request, 'lbutton/button.html' , data)
 
-def button_update(request, button):
+def button_update(request):
     max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
+    button = request.GET.get('button', '')
     domain = Site.objects.get_current().domain
     data = {
         "version": VERSION,
@@ -338,6 +339,7 @@ def button_make(request, button):
     extension_uuid = "lbutton-%s-%s@codefisher.org" % (button_obj.extension_id, time.strftime("%y%m%d"))
     offer_download = request.GET.get("offer-download") == "true"
     domain = Site.objects.get_current().domain
+    request.GET.update({"button": button})
     data = {
         "version": VERSION,
         "button_id": button_obj.chrome_name,

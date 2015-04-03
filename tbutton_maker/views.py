@@ -215,12 +215,7 @@ def create_buttons(request, query, log_creation=True):
     locale = query.get("button-locale", "all")
 
     extension_settings = dict(SETTINGS)
-    extension_settings.update({
-        "show_updated_prompt": False,
-        "icon": os.path.join(extension_settings.get("project_root"), extension_settings.get("icon")),
-        "license": os.path.join(extension_settings.get("project_root"), extension_settings.get("license")),
-        "buttons": buttons,
-    })
+    extension_settings["buttons"] = buttons
 
     if not locale or query.get("include-all-locales") == "true":
         locale = "all"
@@ -235,15 +230,14 @@ def create_buttons(request, query, log_creation=True):
         extension_settings["include_toolbars"] = 0
 
     if query.get("create-menu") == "true":
-        extension_settings["create_menu"] = True
+        extension_settings["menuitems"] = "all"
         if len(buttons) == 1:
-            extension_settings["as_submenu"] = False
+            extension_settings["menu_placement"] = "tools"
 
     extension_settings["locale"] = "all" # always include everything
     applications = get_applications(request)
     extension_settings["applications"] = applications
     update_query = query.copy()
-    #update_query["application"] = ",".join(applications)
     update_query.setlist('button-application', applications)
     update_query["locale"] = locale
     allowed_options = set(("button-application", "locale", "button", "create-menu", "create-toolbars", "icon-size", "channel"))

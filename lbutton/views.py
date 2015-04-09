@@ -24,6 +24,7 @@ from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.core.cache import cache
+from django.utils.html import escape
 from django.utils.encoding import force_str
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
@@ -146,7 +147,7 @@ def create_update_url(request, data, domain, url_name):
         "app_version": "%APP_VERSION%",
     }
     extra_query = "&".join("%s=%s" % (key, value) for key, value in app_data.items())
-    return "https://%s%s?%s&%s" % (domain, reverse(url_name), update_query.urlencode(), extra_query)
+    return "https://%s%s?%s&amp;%s" % (domain, reverse(url_name), escape(update_query.urlencode()), escape(extra_query))
 
 def build(request, input_data):
     data = dict(input_data.items())

@@ -244,19 +244,20 @@ def create_buttons(request, query, log_creation=True):
     for key in update_query.keys():
         if key not in allowed_options:
             del update_query[key]
-    update_query.update({
+    app_data = {
         "item_id": "%ITEM_ID%",
         "item_version": "%ITEM_VERSION%",
         "item_maxapversion": "%ITEM_MAXAPPVERSION%",
         "app_version": "%APP_VERSION%",
-    })
+    }
+    extra_query = "&".join("%s=%s" % (key, value) for key, value in app_data.items())
     icons_size = settings.TBUTTON_ICON_SET_SIZES.get(settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
     if icons_size:
         extension_settings["icon_size"] = icons_size
     extension_settings["chrome_name"] = "toolbar-button-%s" % hashlib.md5("_".join(buttons)).hexdigest()[0:10]
-    extension_settings["extension_id"] = "%s-%s@button.codefisher.org" % (hashlib.md5("_".join(sorted(buttons))).hexdigest(), time.strftime("%y%m%d"))
-    extension_settings["update_url"] = "https://%s%s?%s" % (Site.objects.get_current().domain,
-            reverse("tbutton-update"), escape(update_query.urlencode()))
+    extension_settings["extension_id"] = "%s@button.codefisher.org" % (hashlib.md5("_".join(sorted(buttons))).hexdigest())
+    extension_settings["update_url"] = "https://%s%s?%s&amp;%s" % (Site.objects.get_current().domain,
+            reverse("tbutton-update"), escape(update_query.urlencode()), escape(extra_query))
     if query.get("add-to-toolbar") == "true":
         extension_settings["add_to_main_toolbar"] = buttons
         extension_settings["current_version_pref"] = "current.version.%s" % extension_settings["chrome_name"]
@@ -385,7 +386,9 @@ def update(request):
             reverse("tbutton-make-button"), args.urlencode())
     
     extension_id = request.GET.get("item_id", "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest())
-    
+    # quick patch around an important messed up update
+    if request.GET.get("item_id") == "%ITEM_ID%":
+        extension_id = "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest()
     data = {
         "applications": app_data,
         "version": version,

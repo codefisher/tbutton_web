@@ -26,4 +26,31 @@
 		</em:updates>
 		{% endif %}
 	</rdf:Description>
+	{% for day in days %}
+	<rdf:Description
+		rdf:about="urn:mozilla:extension:{{ extension_hash }}-{{ year_month }}{{ day }}@button.codefisher.org">
+		{% if applications %}
+		<em:updates>
+			<rdf:Seq>
+				<rdf:li>
+					<rdf:Description>
+						<em:version>{{ version }}</em:version>
+						{% for name, uuid, min, max in applications %}
+						<!--  {{ name }} -->
+						<em:targetApplication>
+							<rdf:Description>
+								<em:id>{{ uuid }}</em:id>
+								<em:minVersion>{{ min }}</em:minVersion>
+								<em:maxVersion>{{ max }}</em:maxVersion>
+								<em:updateLink>{{ update_url }}</em:updateLink>
+							</rdf:Description>
+						</em:targetApplication>
+						{% endfor %}
+					</rdf:Description>
+				</rdf:li>
+			</rdf:Seq>
+		</em:updates>
+		{% endif %}
+	</rdf:Description>
+	{% endfor %}
 </rdf:RDF>

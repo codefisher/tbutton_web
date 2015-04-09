@@ -394,8 +394,11 @@ def update(request):
         "version": version,
         "update_url": update_url,
         "extension_id": extension_id,
+        # this is out update fix
+        "extension_hash": hashlib.md5("_".join(sorted(buttons))).hexdigest(),
+        "year_month": "1504",
+        "days": ['%02d' % (x+1) for x in range(31)],
     }
-
     return render(request, "tbutton_maker/update.rdf", data, content_type="application/xml+rdf")
 
 def update_static(request):

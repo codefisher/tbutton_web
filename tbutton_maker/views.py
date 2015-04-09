@@ -390,7 +390,7 @@ def update(request):
     if request.GET.get("item_id") == "%ITEM_ID%":
         extension_id = "%s@button.codefisher.org" % hashlib.md5("_".join(sorted(buttons))).hexdigest()
     data = {
-        "applications": app_data,
+        "applications": list(app_data),
         "version": version,
         "update_url": update_url,
         "extension_id": extension_id,

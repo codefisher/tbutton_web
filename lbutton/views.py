@@ -340,7 +340,8 @@ def button_make(request, button):
     extension_uuid = "lbutton-%s-%s@codefisher.org" % (button_obj.extension_id, time.strftime("%y%m%d"))
     offer_download = request.GET.get("offer-download") == "true"
     domain = Site.objects.get_current().domain
-    request.GET.update({"button": button})
+    update_query = request.GET.copy()
+    update_query.update({"button": button})
     data = {
         "version": VERSION,
         "button_id": button_obj.chrome_name,
@@ -354,7 +355,7 @@ def button_make(request, button):
         "button_tooltip": button_obj.tooltip,
         "home_page": "https://%s%s" % (domain, reverse("lbutton-buttons")),
         "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.0"),
-        "update_url": create_update_url(request, request.GET, domain, "lbutton-button-update")
+        "update_url": create_update_url(request, update_query, domain, "lbutton-button-update")
     }
     output = io.BytesIO()
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)

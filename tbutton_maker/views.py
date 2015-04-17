@@ -125,7 +125,7 @@ def index(request, locale_name=None, applications='browser', template_name='tbut
     button_data = lazy_button_list(applications, locale_str)
     local_data = get_local_data(SETTINGS)
     application_data = SETTINGS.get("applications_data")
-    application_names = dict((key, [item[0] for item in value]) for key, value in application_data.iteritems())
+    application_names = dict((key, [item[0] for item in value]) for key, value in application_data.items())
     data = {
         "locale": locale_name,
         "all_applications": sorted(application_data.keys()),
@@ -437,7 +437,7 @@ def page_it(request, entries_list):
 def list_app_buttons(request, app_name, days=30, template_name='tbutton_maker/app_list.html'):
     app_data = SETTINGS.get("applications_data")
     if app_name not in app_data:
-        for key, items in app_data.iteritems():
+        for key, items in app_data.items():
             if app_name.lower() in [item[0].lower() for item in items]:
                 app_name = key
                 break

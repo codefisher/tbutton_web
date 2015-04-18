@@ -167,6 +167,8 @@ def buttons_page(request, button_id, locale_name=None):
             "tooltip": locale_str("tooltip", stat["name"]),
             "icon": BUTTONS.get_icons(stat["name"]),
         })
+    application_data = SETTINGS.get("applications_data")
+    application_names = dict((key, [item[0] for item in value]) for key, value in application_data.items())
     data = {
         "button": button_id,
         "apps": sorted(list(BUTTONS.button_applications()[button_id])),
@@ -178,6 +180,7 @@ def buttons_page(request, button_id, locale_name=None):
         "locale": locale_name,
         "file_to_name": file_to_name,
         "related": stats,
+        "application_names": application_names,
     }
     #except:
     #    raise Http404

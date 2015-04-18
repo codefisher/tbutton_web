@@ -19,7 +19,7 @@
 {{ label }}</h1>
         {{ description|linebreaks }}
         
-
+        <div class="clear">
         <form method="get" class="left" action="{% url 'tbutton-create' %}">
             <input type="hidden" value="{{ button }}" name="button">
             <input type="hidden" value="{{ application }}" name="application">
@@ -37,6 +37,7 @@
                 <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
                 Download {{ label }}</button>
         </form>
+        </div>
         <p class="compatibility clear">
         Compatibility:
         {% for app in apps %}

@@ -1,17 +1,21 @@
 
-import urlparse
+
 import base64
 import zipfile
 import io
 import hashlib
 import os
-import urllib
 import time
 import json
 import tempfile
-
 from array import array
 from subprocess import Popen, PIPE
+
+try:
+    from urlparse import urlparse
+    from urllib import urlencode
+except:
+    from urllib.parse import urlparse, urlencode
 
 from PIL import Image
 
@@ -43,7 +47,7 @@ def index(request, template_name="lbutton/index.html"):
 def create(request):
     if request.method == 'POST':
         url = request.POST.get("url")
-        parsed_url = urlparse.urlparse(url)
+        parsed_url = urlparse(url)
         if parsed_url[0] == "":
             url = "http://" + url
         elif parsed_url[0] not in ["http", "https", "ftp", "ftps", "javascript", "file"]:
@@ -110,7 +114,7 @@ def create(request):
         if "chrome" in request.POST:
             data["chrome"] = True
         data.update(icon_data)
-        url_data = urllib.urlencode(data)
+        url_data = urlencode(data)
         key = 'lbytton-%s' % hashlib.sha1(url_data).hexdigest()
         cache.set(key, url_data, 3*60*60)
         request.session["lbutton-key"] = key
@@ -394,7 +398,7 @@ def favicons(request):
     if not request.POST.get("url"):
         return HttpResponse("fail")
     url = request.POST.get("url")
-    parsed_url = urlparse.urlparse(url)
+    parsed_url = urlparse(url)
     if parsed_url[0] == "":
         url = "http://" + url
     elif parsed_url[0] not in ["http", "https", "ftp", "ftps", "javascript", "file"]:

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from upvotes.models import AbstractRequest, AbstractRequestComment
-from djangopress.core.format import format_markdown
+from djangopress.core.format.library import format_markdown
 
 class TbuttonRequest(AbstractRequest):
     

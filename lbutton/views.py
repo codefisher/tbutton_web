@@ -34,6 +34,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
+from mozbutton_sdk.builder.util import extra_update_prams
 from tbutton_web.lbutton.models import LinkButtonDownload, LinkButton, LinkButtonBuild
 
 VERSION = "1.1.0"
@@ -144,13 +145,7 @@ def create_update_url(request, data, domain, url_name):
             del update_query[key]
     if "chrome" in request.GET:
         return "https://%s%s?%s" % (domain, reverse(url_name), update_query.urlencode())
-    app_data = {
-        "item_id": "%ITEM_ID%",
-        "item_version": "%ITEM_VERSION%",
-        "item_maxapversion": "%ITEM_MAXAPPVERSION%",
-        "app_version": "%APP_VERSION%",
-    }
-    extra_query = "&".join("%s=%s" % (key, value) for key, value in app_data.items())
+    extra_query = extra_update_prams()
     return "https://%s%s?%s&amp;%s" % (domain, reverse(url_name), escape(update_query.urlencode()), escape(extra_query))
 
 def build(request, input_data):

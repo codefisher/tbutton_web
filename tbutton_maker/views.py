@@ -1,5 +1,3 @@
-# Create your views here.
-
 import os
 import re
 import io
@@ -7,7 +5,6 @@ import datetime
 import hashlib
 import json
 import itertools
-import time
 
 from django.contrib.sites.models import Site
 from django.shortcuts import render, redirect
@@ -21,13 +18,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 from mozbutton_sdk.config.settings import config
 from mozbutton_sdk.builder import button, locales, util, build, custombutton
+from mozbutton_sdk.builder.util import extra_update_prams
 from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession
 from codefisher_apps.extension_downloads.models import ExtensionDownload
 from codefisher_apps.downloads.models import DownloadGroup
 
 SETTINGS = dict(config)
 util.apply_settings_files(SETTINGS, settings.TBUTTON_CONFIG)
-
 
 class WebButton(button.SimpleButton):
     def __init__(self, folders, buttons, settings, applications):
@@ -243,17 +240,11 @@ def create_buttons(request, query, log_creation=True):
     update_query = query.copy()
     update_query.setlist('button-application', applications)
     update_query["locale"] = locale
-    allowed_options = set(("button-application", "locale", "button", "create-menu", "create-toolbars", "icon-size", "channel"))
+    allowed_options = {"button-application", "locale", "button", "create-menu", "create-toolbars", "icon-size", "channel"}
     for key in update_query.keys():
         if key not in allowed_options:
             del update_query[key]
-    app_data = {
-        "item_id": "%ITEM_ID%",
-        "item_version": "%ITEM_VERSION%",
-        "item_maxapversion": "%ITEM_MAXAPPVERSION%",
-        "app_version": "%APP_VERSION%",
-    }
-    extra_query = "&".join("%s=%s" % (key, value) for key, value in app_data.items())
+    extra_query = extra_update_prams()
     icons_size = settings.TBUTTON_ICON_SET_SIZES.get(settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
     if icons_size:
         extension_settings["icon_size"] = icons_size

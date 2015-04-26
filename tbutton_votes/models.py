@@ -12,7 +12,7 @@ class TbuttonRequest(AbstractRequest):
     )
     
     application = models.CharField(choices=APPLICATIONS, max_length=2)
-    subscriptions = models.ManyToManyField(User, null=True, blank=True, related_name='tbutton_request_subscriptions')
+    subscriptions = models.ManyToManyField(User, blank=True, related_name='tbutton_request_subscriptions')
       
     def get_message(self):
         return format_markdown(self.message)

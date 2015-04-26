@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from mozbutton_sdk.config.settings import config
 from mozbutton_sdk.builder import button, locales, util, build, custombutton
 from mozbutton_sdk.builder.util import extra_update_prams
-from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession
+from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession, UpdateSession
 from codefisher_apps.extension_downloads.models import ExtensionDownload
 from codefisher_apps.downloads.models import DownloadGroup
 
@@ -269,12 +269,20 @@ def create_buttons(request, query, log_creation=True):
     if log_creation:
         session = DownloadSession()
         session.query_string = query.urlencode()
+        session.ip_address = get_client_ip(request)
+        session.user_agent = request.META.get("HTTP_USER_AGENT")
         session.save()
         for button_record in buttons_obj.buttons():
             Button.objects.create(name=button_record, session=session)
         for button_record in buttons_obj.applications():
             Application.objects.create(name=button_record, session=session)
     return responce
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[-1].strip()
+    return request.META.get('REMOTE_ADDR')
 
 @csrf_exempt
 def create(request):
@@ -393,6 +401,11 @@ def update(request):
         "year_month": "1504",
         "days": ['%02d' % (x+1) for x in range(31)],
     }
+    update_session = UpdateSession()
+    update_session.ip_address = get_client_ip(request)
+    update_session.query_string = args.urlencode()
+    update_session.user_agent = request.META.get("HTTP_USER_AGENT")
+    update_session.save()
     return render(request, "tbutton_maker/update.rdf", data, content_type="application/xml+rdf")
 
 def update_static(request):

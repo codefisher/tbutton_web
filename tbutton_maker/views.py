@@ -146,6 +146,8 @@ def index(request, locale_name=None, applications='browser', template_name='tbut
     return render(request, template_name, data)
 
 def buttons_page(request, button_id, locale_name=None):
+    if button_id not in BUTTONS:
+        raise Http404
     #try:
     locale_name = get_locale_name(request, locale_name)
     locale_str = locale_str_getter(locale_name)

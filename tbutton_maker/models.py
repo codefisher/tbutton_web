@@ -20,5 +20,5 @@ class Button(models.Model):
 class UpdateSession(models.Model):
     time = models.DateTimeField(auto_now_add=True)
     query_string = models.TextField()
-    ip_address = models.GenericIPAddressField()
-    user_agent = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField(null=True)
+    user_agent = models.CharField(max_length=255, null=True)

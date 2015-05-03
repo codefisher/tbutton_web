@@ -261,7 +261,7 @@ def create_buttons(request, query, log_creation=True):
     buttons_obj = build.build_extension(extension_settings, output=output, button_locales=LOCALE)
     content_type = 'application/x-xpinstall'
     disposition = 'filename=%s'
-    if query.get('offer-download') == 'true' or ('browser' not in applications):
+    if query.get('offer-download') == 'true' or ('browser' not in applications and 'suite' not in applications):
         content_type = 'application/octet-stream'
         disposition = 'attachment; filename=%s'
     responce = HttpResponse(output.getvalue(), content_type=content_type)

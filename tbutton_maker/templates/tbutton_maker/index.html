@@ -78,7 +78,7 @@ type="text/javascript";e.parentNode.insertBefore($,e)})(document,"script");
 					<span class="button-name">{{ label|safe }}{% if folder != 'data' %} *{% endif %}</span>
 				</label>
 				<div class="button-info">
-					<img src="{% get_static_prefix %}images/pastel-svg/16/{{ icon }}" width="16" height="16" alt="{{ tooltip|safe }}">
+					<img src="{% get_static_prefix %}images/pastel-svg/16/{{ icon }}" width="16" height="16" alt="{{ tooltip }}">
 					<div class="button-description">{{ description|linebreaks }}</div>
 				</div>
 			</li>

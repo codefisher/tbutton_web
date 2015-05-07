@@ -108,6 +108,7 @@ def lazy_button_list(applications, locale_str):
         for button_id, apps in BUTTONS.button_applications().items():
             button_apps = applications.intersection(apps)
             if button_apps:
+                # TODO: we don't know if the tooltip or label has entities escaped or not.
                 button_data.append((button_id, sorted(apps), locale_str("label", button_id),
                                     locale_str("tooltip", button_id), BUTTONS.get_icons(button_id),
                                     BUTTONS.description(button_id), BUTTONS.get_source_folder(button_id), button_apps))

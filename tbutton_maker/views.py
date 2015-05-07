@@ -381,9 +381,9 @@ def update(request):
         app_data = None
     else:
         if "all" in applications:
-            app_data = itertools.chain(*SETTINGS.get("applications_data").values())
+            app_data = itertools.chain.from_iterable(SETTINGS.get("applications_data").values())
         else:
-            app_data = itertools.chain(*(SETTINGS.get("applications_data").get(app) for app in applications))
+            app_data = itertools.chain.from_iterable(SETTINGS.get("applications_data").get(app) for app in applications)
     if channel == "nightly":
         version = "%s.r%s" %(version, util.get_git_revision(SETTINGS))
     update_url = "https://%s%s?%s" % (Site.objects.get_current().domain,

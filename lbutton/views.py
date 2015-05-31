@@ -278,7 +278,6 @@ def write_crx_files(data, xpi, input):
               "24": "icon-24.png",
               "16": "icon-16.png",
          },
-         "update_url": data["update_url"] + "&extension_uuid=" + build_id(derkey),
          "background": {
              "scripts": ["background.js"]
          },
@@ -296,6 +295,10 @@ def write_crx_files(data, xpi, input):
          },
          "manifest_version": 2
     }
+    if "update_url" in data:
+        manifest["update_url"] = data["update_url"] + "&extension_uuid=" + build_id(derkey)
+    else:
+        manifest["update_url"] = ""
     for template in ["background.js", "options.js", "options.html"]:
         xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     xpi.writestr("manifest.json", json.dumps(manifest, indent=4, separators=(',', ': ')))

@@ -13,6 +13,7 @@ from django.http import HttpResponse, Http404, QueryDict
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.utils.html import escape
+from django.contrib import messages
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 
@@ -259,7 +260,11 @@ def create_buttons(request, query, log_creation=True):
         extension_settings["add_to_main_toolbar"] = buttons
         extension_settings["current_version_pref"] = "current.version.%s" % extension_settings["chrome_name"]
     output = io.BytesIO()
-    buttons_obj = build.build_extension(extension_settings, output=output, button_locales=LOCALE)
+    try:
+        buttons_obj = build.build_extension(extension_settings, output=output, button_locales=LOCALE)
+    except build.ExtensionConfigError as e:
+        messages.add_message(request, messages.ERROR, e.message)
+        return redirect(reverse("tbutton-custom", kwargs={}) + "?" + query.urlencode())
     content_type = 'application/x-xpinstall'
     disposition = 'filename=%s'
     if query.get('offer-download') == 'true' or ('browser' not in applications and 'suite' not in applications):

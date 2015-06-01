@@ -5,6 +5,7 @@ import datetime
 import hashlib
 import json
 import itertools
+from collections import Counter
 
 from django.contrib.sites.models import Site
 from django.shortcuts import render, redirect
@@ -319,6 +320,11 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
     applications = dict(BUTTONS.button_applications().items())
     total = 0
     found = set()
+    updates = UpdateSession.objects.filter(time__gt=time)
+    update_counts = Counter()
+    for row in updates:
+            query = QueryDict(row.query_string)
+            update_counts.update(query.getlist('button'))
     for item in stats:
         try:
             found.add(item["name"])
@@ -331,6 +337,7 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
                 "icon": BUTTONS.get_icons(item["name"]),
                 "label": locale_str('label', item["name"]),
                 "average": (float(count) / days),
+                "update": update_counts.get(item["name"], 0) / days,
                 "percent": (float(count) / sum * 100) if sum else 0,
                 "total": (float(total) / sum * 100) if sum else 0,
                 "folder": BUTTONS.get_source_folder(item["name"]),
@@ -346,6 +353,7 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
                "applications": apps,
                "icon": BUTTONS.get_icons(name),
                "label": locale_str('label', name),
+               "update": 0,
                "average": 0,
                "percent": 0,
                "total": (float(total) / sum * 100) if sum else 0,

@@ -4,8 +4,8 @@
 {% block page_title %}Toolbar Button Statistics{% endblock %}
 
 {% block wrapper %}
-    <div id="wrapper" class="no-sidebar">
-        <div id="content">
+	<div id="wrapper" class="no-sidebar">
+		<div id="content">
 	<h2>Toolbar Button Statistics</h2>
 	<table>
 		<thead>
@@ -16,6 +16,7 @@
 				<th>Applications</th>
 				<th>Id</th>
 				<th>Count</th>
+				<th>Updates</th>
 				<th>Average</th>
 				<th>Percent</th>
 				<th>Percent Total</th>
@@ -23,6 +24,7 @@
 		</thead>
 		<tfoot>
 			<tr>
+				<td></td>
 				<td></td>
 				<td></td>
 				<td></td>
@@ -39,15 +41,16 @@
 			<tr>
 				<td>{{ forloop.counter }}</td>
 				<td><img src="{% get_static_prefix %}images/pastel-svg/16/{{ item.icon }}" width="16" height="16" alt="{{ item.name|safe }}">
-                    {{ item.label }}</td>
-                <td>{{ item.folder }}</td>
-				<td>                    
-				    {% for app in item.applications %}
-                        <img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" alt="">
-                    {% endfor %}
-                </td>
+					{{ item.label }}</td>
+				<td>{{ item.folder }}</td>
+				<td>
+					{% for app in item.applications %}
+						<img src="{% get_static_prefix %}images/icons/{{ app }}.png" width="16" height="16" alt="">
+					{% endfor %}
+				</td>
 				<td>{{ item.name }}</td>
 				<td>{{ item.downloads }}</td>
+				<td>{{ item.update }}</td>
 				<td>{{ item.average|floatformat:"-2" }}</td>
 				<td>{{ item.percent|floatformat:"-2" }}</td>
 				<td>{{ item.total|floatformat:"-2" }}</td>

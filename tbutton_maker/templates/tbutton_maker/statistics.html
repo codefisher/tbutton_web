@@ -3,11 +3,15 @@
 
 {% block page_title %}Toolbar Button Statistics{% endblock %}
 
+{% block head_tags %}
+		<script type="text/javascript" src="{% static "js/jquery.tablesorter.min.js" %}"></script>
+{% endblock %}
+
 {% block wrapper %}
 	<div id="wrapper" class="no-sidebar">
 		<div id="content">
 	<h2>Toolbar Button Statistics</h2>
-	<table>
+	<table id="button-stats">
 		<thead>
 			<tr>
 				<th>#</th>
@@ -58,6 +62,9 @@
 		{% endfor %}
 		</tbody>
 	</table>
+		<script type="text/javascript">
+			$(document).ready(function() { $("#button-stats").tablesorter(); });
+		</script>
         </div>
     </div>
 {% endblock %}

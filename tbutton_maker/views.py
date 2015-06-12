@@ -60,7 +60,7 @@ def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):
     
 def create_locales():
     locale_folder, locale = util.get_locale_folders("all", SETTINGS)
-    return locales.Locale(SETTINGS, locale_folder, locale, all_files=True)
+    return locales.Locale(SETTINGS, locale_folder, locale)
 
 LOCALE = create_locales()
 BUTTONS = get_buttons_obj(SETTINGS)

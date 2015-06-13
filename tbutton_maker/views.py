@@ -77,8 +77,11 @@ def button_key(item):
 def get_local_data(extension_settings):
     locale_meta = LOCALE
     local_data = []
-    for locales_name in locale_meta.get_locales():
-        local_data.append((locales_name, locale_meta.get_dtd_value(locales_name, 'name'), locale_meta.get_dtd_value(locales_name, 'native_name'), locale_meta.get_dtd_value(locales_name, 'country')))
+    for locales_name in locale_meta.locales:
+        local_data.append((locales_name,
+             locale_meta.get_dtd_value(locales_name, 'name'),
+             locale_meta.get_dtd_value(locales_name, 'native_name'),
+             locale_meta.get_dtd_value(locales_name, 'country')))
     local_data.sort(key=button_key)
     return local_data
 
@@ -99,7 +102,7 @@ def get_applications(request, applications=None):
 def get_locale_name(request, locale_name=None):
     if locale_name == None:
         locale_name = request.GET.get('button-locale')
-    if locale_name not in LOCALE.get_locales():
+    if locale_name not in LOCALE.locales:
         locale_name = SETTINGS.get("default_locale")
     return locale_name
 

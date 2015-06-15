@@ -415,11 +415,16 @@ def update(request):
         "version": version,
         "update_url": update_url,
         "extension_id": extension_id,
-        # this is out update fix
+        # this is our update fix
         "extension_hash": hashlib.md5("_".join(sorted(buttons))).hexdigest(),
-        "year_month": "1504",
+        "year_month": "1503",
         "days": ['%02d' % (x+1) for x in range(31)],
     }
+    if (request.GET.get('icon-size') == 'standard'
+            and request.GET.get('create-toolbars') != 'true'):
+        if {'personal-bookmarks-menu-button'}.issuperset(request.GET.getlist('button')):
+            data['update_url'] = "https://addons.mozilla.org/firefox/downloads/latest/620668/addon-620668-latest.xpi?src=external-update"
+            data['version'] = "1.1.2"
     update_session = UpdateSession()
     update_session.ip_address = get_client_ip(request)
     update_session.query_string = args.urlencode()

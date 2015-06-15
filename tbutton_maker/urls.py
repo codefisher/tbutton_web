@@ -4,6 +4,7 @@ from tbutton_web.tbutton_maker import views
 urlpatterns = patterns('',
     url(r'^custom/create-addon/$', views.create, name='tbutton-create'),
     url(r'^statistics/', views.statistics, name='tbutton-statistics'),
+    url(r'^statistics/(?P<days>\d+)/', views.statistics, name='tbutton-statistics'),
     url(r'^toolbar_button_maker/$', views.index, name='tbutton-custom'),
     url(r'^toolbar_button_maker/(?P<locale_name>[a-z]{2}(-[A-Z]{2})?)/$',
         views.index, name='tbutton-custom'),

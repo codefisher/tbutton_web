@@ -20,7 +20,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.csrf import csrf_exempt
 
 from mozbutton_sdk.config.settings import config
-from mozbutton_sdk.builder import button, locales, util, build, custombutton
+from mozbutton_sdk.builder import button, locales, util, build
 from mozbutton_sdk.builder.util import extra_update_prams
 from tbutton_web.tbutton_maker.models import Application, Button, DownloadSession, UpdateSession
 from codefisher_apps.extension_downloads.models import ExtensionDownload
@@ -227,38 +227,6 @@ def buttons_page(request, button_id, locale_name=None):
     #except:
     #    raise Http404
     return render(request, "tbutton_maker/button.html", data)
-
-def create_custombutton(request):
-    if request.method == 'POST':
-        button = request.POST.get("button")
-        button_locale = request.POST.get("button-locale")
-        window = request.POST.get("application-window")
-    else:
-        button = request.GET.get("button")
-        button_locale = request.GET.get("button-locale")
-        window = request.GET.get("application-window")
-    if not window in BUTTONS.button_windows[button]:
-        if button_locale:
-            args = {"button_id": button, "locale_name": button_locale}
-            return redirect(reverse("tbutton-button", kwargs=args))
-        elif button:
-            args = {"button_id": button}
-            return redirect(reverse("tbutton-button", kwargs=args))
-        else:
-            raise Http404
-    application = SETTINGS.get("file_to_application").get(window)[0]
-    extension_settings = dict(SETTINGS)
-    extension_settings.update({
-        "icon": os.path.join(extension_settings.get("project_root"),
-                             extension_settings.get("icon")),
-    })
-    url = custombutton.custombutton(
-        extension_settings, application, window, button_locale,
-        button, button_locales=LOCALE)
-    result = buttons_page(request, button, button_locale)
-    response = HttpResponse(result.content, status=302)
-    response['Location'] = url
-    return response
 
 def create_buttons(request, query, log_creation=True):
     buttons = query.getlist("button")

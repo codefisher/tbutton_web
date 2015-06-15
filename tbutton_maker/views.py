@@ -32,6 +32,8 @@ util.apply_settings_files(SETTINGS, settings.TBUTTON_CONFIG)
 ButtonData = namedtuple(
     'ButtonData', ['button_id', 'apps', 'label', 'tooltip',
                    'icons', 'description', 'folder', 'button_apps'])
+LocaleData = namedtuple(
+    'LocaleData', ['locale_code', 'name', 'native_name', 'country'])
 
 class WebButton(button.SimpleButton):
     def __init__(self, folders, buttons, settings, applications):
@@ -44,10 +46,11 @@ class WebButton(button.SimpleButton):
 
         for folder, button_id, files in self._info:
             if "description" in files:
-                with open(os.path.join(folder, "description"), "r") as description:
-                    self._description[button_id] = description.read()
-                    if not self._description[button_id].strip():
-                        print("Button %s lacks description" % button_id)
+                with open(os.path.join(folder, "description"), "r") as fp:
+                    description = fp.read().strip()
+                    self._description[button_id] = description
+                    if not description:
+                        print("Button {} lacks description".format(button_id))
               
     def get_source_folder(self, button):
         return self._source_folder[button] 
@@ -83,25 +86,29 @@ BUTTONS = get_buttons_obj(SETTINGS)
 def locale_str_getter(locale_name):
     return BUTTONS.locale_string(button_locale=LOCALE, locale_name=locale_name)
 
-def list_buttons(request, locale_name=None, applications=None, template_name='tbutton_maker/list.html'):
+def list_buttons(request, locale_name=None,
+                 applications=None, template_name='tbutton_maker/list.html'):
     return index(request, locale_name, applications, template_name)
 
 def button_key(item):
     return item[2].lower() if item[2] else None
 
-def get_local_data(extension_settings):
+def get_local_data():
     locale_meta = LOCALE
     local_data = []
-    for locales_name in locale_meta.locales:
-        local_data.append((locales_name,
-             locale_meta.get_dtd_value(locales_name, 'name'),
-             locale_meta.get_dtd_value(locales_name, 'native_name'),
-             locale_meta.get_dtd_value(locales_name, 'country')))
+    for locale_code in locale_meta.locales:
+        data = LocaleData(
+            locale_code=locale_code,
+            name=locale_meta.get_dtd_value(locale_code, 'name'),
+            native_name=locale_meta.get_dtd_value(locale_code, 'native_name'),
+            country=locale_meta.get_dtd_value(locale_code, 'country')
+        )
+        local_data.append(data)
     local_data.sort(key=button_key)
     return local_data
 
 def get_applications(request, applications=None):
-    if applications == None:
+    if applications is None:
         applications = request.GET.getlist('button-application')
     else:
         if ',' in applications:
@@ -115,7 +122,7 @@ def get_applications(request, applications=None):
     return applications
 
 def get_locale_name(request, locale_name=None):
-    if locale_name == None:
+    if locale_name is None:
         locale_name = request.GET.get('button-locale')
     if locale_name not in LOCALE.locales:
         locale_name = SETTINGS.get("default_locale")
@@ -150,7 +157,7 @@ def index(request, locale_name=None, applications='browser',
     applications = get_applications(request, applications)
     locale_str = locale_str_getter(locale_name)
     button_data = lazy_button_list(applications, locale_str)
-    local_data = get_local_data(SETTINGS)
+    local_data = get_local_data()
     application_data = SETTINGS.get("applications_data")
     application_names = {key: [item[0] for item in value]
                          for key, value in application_data.items()}
@@ -183,9 +190,9 @@ def buttons_page(request, button_id, locale_name=None):
     locale_str = locale_str_getter(locale_name)
     file_to_name = [(file_name, name)
                     for file_name, name in SETTINGS.get("file_to_name").items()
-                    if file_name in BUTTONS._button_windows[button_id]]
+                    if file_name in BUTTONS.button_windows[button_id]]
     file_to_name.sort(key=lambda item: item[1].lower() if item[1] else None)
-    local_data = get_local_data(SETTINGS)
+    local_data = get_local_data()
     
     days = 30
     time = datetime.datetime.now() - datetime.timedelta(days)
@@ -230,7 +237,7 @@ def create_custombutton(request):
         button = request.GET.get("button")
         button_locale = request.GET.get("button-locale")
         window = request.GET.get("application-window")
-    if not window in BUTTONS._button_windows[button]:
+    if not window in BUTTONS.button_windows[button]:
         if button_locale:
             args = {"button_id": button, "locale_name": button_locale}
             return redirect(reverse("tbutton-button", kwargs=args))
@@ -290,30 +297,44 @@ def create_buttons(request, query, log_creation=True):
         if key not in allowed_options:
             del update_query[key]
     extra_query = extra_update_prams()
-    icons_size = settings.TBUTTON_ICON_SET_SIZES.get(settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
+    icons_size = settings.TBUTTON_ICON_SET_SIZES.get(
+        settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
     if icons_size:
         extension_settings["icon_size"] = icons_size
-    extension_settings["chrome_name"] = "toolbar-button-%s" % hashlib.md5("_".join(buttons)).hexdigest()[0:10]
-    extension_settings["extension_id"] = "%s@button.codefisher.org" % (hashlib.md5("_".join(sorted(buttons))).hexdigest())
-    extension_settings["update_url"] = "https://%s%s?%s&amp;%s" % (Site.objects.get_current().domain,
-            reverse("tbutton-update"), escape(update_query.urlencode()), escape(extra_query))
+    button_hash = hashlib.md5("_".join(sorted(buttons))).hexdigest()
+    chrome_name = "toolbar-button-" + button_hash[0:10]
+    extension_settings["chrome_name"] = chrome_name
+    extension_settings["extension_id"] = button_hash + "@button.codefisher.org"
+    update_url = "https://{domain}{path}?{query}&amp;{extra_query}"
+    extension_settings["update_url"] = update_url.format(
+        domain=Site.objects.get_current().domain,
+        path=reverse("tbutton-update"),
+        query=escape(update_query.urlencode()),
+        extra_query=escape(extra_query)
+    )
     if query.get("add-to-toolbar") == "true":
         extension_settings["add_to_main_toolbar"] = buttons
-        extension_settings["current_version_pref"] = "current.version.%s" % extension_settings["chrome_name"]
+        current_version_pref = "current.version." + chrome_name
+        extension_settings["current_version_pref"] = current_version_pref
     output = io.BytesIO()
     try:
-        buttons_obj = build.build_extension(extension_settings, output=output, button_locales=LOCALE)
+        buttons_obj = build.build_extension(
+            extension_settings, output=output, button_locales=LOCALE)
     except build.ExtensionConfigError as e:
         messages.add_message(request, messages.ERROR, e.message)
-        return redirect(reverse("tbutton-custom", kwargs={}) + "?" + query.urlencode())
+        url = "".join((reverse("tbutton-custom", kwargs={}),
+                       "?", query.urlencode()))
+        return redirect(url)
     content_type = 'application/x-xpinstall'
-    disposition = 'filename=%s'
-    if query.get('offer-download') == 'true' or ('browser' not in applications and 'suite' not in applications):
+    disposition = 'filename={}'
+    if (query.get('offer-download') == 'true'
+            or ('browser' not in applications and 'suite' not in applications)):
         content_type = 'application/octet-stream'
-        disposition = 'attachment; filename=%s'
-    responce = HttpResponse(output.getvalue(), content_type=content_type)
+        disposition = 'attachment; filename={}'
+    response = HttpResponse(output.getvalue(), content_type=content_type)
     output.close()
-    responce['Content-Disposition'] = disposition % (extension_settings.get('output_file') % extension_settings)
+    file_name = extension_settings.get('output_file') % extension_settings
+    response['Content-Disposition'] = disposition.format(file_name)
     
     if log_creation:
         session = DownloadSession()
@@ -325,7 +346,7 @@ def create_buttons(request, query, log_creation=True):
             Button.objects.create(name=button_record, session=session)
         for button_record in buttons_obj.applications():
             Application.objects.create(name=button_record, session=session)
-    return responce
+    return response
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -349,6 +370,10 @@ def create(request):
         return redirect(reverse("tbutton-custom", kwargs=kwargs))
     return create_buttons(request, request.GET)
 
+def safe_divide(numerator, denominator):
+    if denominator != 0:
+        return float(numerator) / denominator
+    return 0
 
 def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
     locale_str = locale_str_getter(None)
@@ -357,7 +382,7 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
     sessions = DownloadSession.objects.filter(time__gt=time).count()
     stats = list(buttons.values('name').annotate(
         downloads=Count('name')).order_by("-downloads"))
-    sum = buttons.count()
+    button_count = buttons.count()
     applications = dict(BUTTONS.button_applications().items())
     total = 0
     found = set()
@@ -377,13 +402,13 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
                 "applications": apps,
                 "icon": BUTTONS.get_icons(item["name"]),
                 "label": locale_str('label', item["name"]),
-                "average": (float(count) / days),
+                "average": safe_divide(count, days),
                 "update": update_counts.get(item["name"], 0) / days,
-                "percent": (float(count) / sum * 100) if sum else 0,
-                "total": (float(total) / sum * 100) if sum else 0,
+                "percent": safe_divide(count, button_count * 100),
+                "total": safe_divide(total, button_count * 100),
                 "folder": BUTTONS.get_source_folder(item["name"]),
             })
-        except:
+        except KeyError:
             pass # if we change an id, this will happen, but we don't care
     for name in set(BUTTONS.buttons()).difference(found):
         apps = list(applications.get(name, ()))
@@ -397,15 +422,15 @@ def statistics(request, days=30, template_name='tbutton_maker/statistics.html'):
                "update": 0,
                "average": 0,
                "percent": 0,
-               "total": (float(total) / sum * 100) if sum else 0,
+               "total": safe_divide(total, button_count * 100),
                "folder": BUTTONS.get_source_folder(name),   
         })
     data = {
         "stats": stats,
-        "count": sum,
+        "count": button_count,
         "updates": len(updates) // days,
         "sessions": sessions,
-        "average": float(sum)/(len(stats)*days) if stats else 0
+        "average": safe_divide(button_count, len(stats) * days)
     }
     return render(request, template_name, data)
 
@@ -446,9 +471,11 @@ def update(request):
             app_info = (app_setting.get(app) for app in applications)
             app_data = itertools.chain.from_iterable(app_info)
     if channel == "nightly":
-        version = "%s.r%s" %(version, util.get_git_revision(SETTINGS))
-    update_url = "https://%s%s?%s" % (Site.objects.get_current().domain,
-            reverse("tbutton-make-button"), args.urlencode())
+        version = "{}.r{}".format(version, util.get_git_revision(SETTINGS))
+    update_url = "https://{domatin}{path}?{query}".format(
+        domain=Site.objects.get_current().domain,
+        path=reverse("tbutton-make-button"),
+        query=args.urlencode())
 
     extension_hash = hashlib.md5("_".join(sorted(buttons))).hexdigest()
     extension_id_string = extension_hash + "@button.codefisher.org"
@@ -495,7 +522,10 @@ def update_static(request):
     data = {
         "applications": app_data,
         "version": SETTINGS.get("version"),
-        "update_url": "%s://%s%s" % (scheme, site.domain, extension.get_absolute_url()),
+        "update_url": "{scheme}://{domain}{path}".format(
+            scheme=scheme,
+            domain=site.domain,
+            path=extension.get_absolute_url()),
         "extension_id": SETTINGS.get("extension_id"),
     }
     return render(request, "tbutton_maker/update.rdf",
@@ -513,12 +543,12 @@ def page_it(request, entries_list):
         page = 1
 
     try:
-        entries = paginator.page(page)
+        return paginator.page(page)
     except (EmptyPage, InvalidPage):
         # todo: better raise a redirect
         if page != 1:
-            entries = paginator.page(paginator.num_pages)
-    return entries
+            return paginator.page(paginator.num_pages)
+    return []
 
 def list_app_buttons(request, app_name, days=30,
                      template_name='tbutton_maker/app_list.html'):

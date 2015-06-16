@@ -16,15 +16,8 @@
 
 <h2>Toolbar Button List</h2>
 
-{% if custom_button %}
-<p class="content-box">
-    <img src="{% static "images/icons/cbicon.png" %}" width="24" height="24" alt="">
-    To create a button for the <a href="https://addons.mozilla.org/en-us/firefox/addon/custom-buttons/">Custom Buttons</a> extension, open the page of the button you want, click <em>Create Custom Button</em> and fill in what is needed.
-</p>
-{% endif %}
-
 <ul id="button_list">
-    {% cache 600 tbutton_list applications locale %}
+	{% cache 600 tbutton_list applications locale %}
 	{% for button, apps, label, tooltip, icon, description in button_data %}
 		<li class="button-item">
 			<span class="button-name">

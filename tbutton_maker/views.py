@@ -440,7 +440,7 @@ def update(request):
             app_data = itertools.chain.from_iterable(app_info)
     if channel == "nightly":
         version = "{}.r{}".format(version, util.get_git_revision(SETTINGS))
-    update_url = "https://{domatin}{path}?{query}".format(
+    update_url = "https://{domain}{path}?{query}".format(
         domain=Site.objects.get_current().domain,
         path=reverse("tbutton-make-button"),
         query=args.urlencode())

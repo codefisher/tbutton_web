@@ -2,91 +2,69 @@
 {% load static %}
 
 {% block head_tags %}
-        <link type="text/css" rel="stylesheet" href="{% static "css/tbutton.css" %}">
-        <script type="text/javascript" src="{% static "js/tbutton.js" %}"></script>
+	<link type="text/css" rel="stylesheet"
+		  href="{% static "css/tbutton.css" %}">
+	<script type="text/javascript" src="{% static "js/tbutton.js" %}"></script>
 {% endblock %}
 
 {% block page_title %}{{ label }} Button{% endblock %}
 
 {% block content %}
-        <div class="content-box bookmarklets">
-            <a href="/toolbar_button/">Toolbar Buttons</a> &raquo;
-            <a href="/toolbar_button/button_list/">Button List</a> &raquo;
-            {{ label }}
-        </div>
-        <div class="content-box">
-        <h1>        <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
-{{ label }}</h1>
-        {{ description|linebreaks }}
-        
-        <div class="clear">
-        <form method="get" class="left" action="{% url 'tbutton-create' %}">
-            <input type="hidden" value="{{ button }}" name="button">
-            <input type="hidden" value="{{ application }}" name="application">
-            <input type="hidden" value="true" name="add-to-toolbar">
-            <button type="submit">
-                <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
-                Install {{ label }}</button>
-        </form>
-        <form method="get" class="left" action="{% url 'tbutton-create' %}">
-            <input type="hidden" value="{{ button }}" name="button">
-            <input type="hidden" value="{{ application }}" name="application">
-            <input type="hidden" value="true" name="add-to-toolbar">
-            <input type="hidden" value="true" name="offer-download">
-            <button type="submit">
-                <img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}" title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
-                Download {{ label }}</button>
-        </form>
-        </div>
-        <p class="compatibility clear">
-        Compatibility:
-        {% for app in apps %}
-            <img src="{% get_static_prefix %}images/icons/{{ app }}.png" alt="">
-            {% for key, app_names in application_names.items %}{% if key == app %} {{ app_names|join:", " }}{% endif %} {% endfor %}
-        {% endfor %}
-        </p>
-        </div>
-        <div class="content-box">
-            <h2 onclick="$('#custombutton').show(500);"><img src="{% get_static_prefix %}images/icons/cbicon.png" width="24" height="24" alt="">Create Custom Button</h2>
-        <form  method="post" id="custombutton" style="display:none;" class="clear" action="{% url 'tbutton-createcustom' %}">
-            {% csrf_token %}
-            <input type="hidden" value="{{ button }}" name="button">
-            <ul class="messages"><li class="warning">
-                This only works if you have the <a href="https://addons.mozilla.org/en-us/firefox/addon/custom-buttons/">Custom Buttons</a> extension installed.  If you do not, please use the button above to create a standard extension.
-            </li></ul>
-            <div>
-                <label for="button-locale">Locale<br />
-                    <select name="button-locale" id="button-locale" class="form-input">
-                        {% for value, name, native_name, country in local_data %}
-                            <option{% if value == locale %} selected{% endif %}
-                                value="{{ value }}" style="background: url('{% get_static_prefix %}images/flags/{{ country|lower }}.png') no-repeat left center; padding-left:20px;">{{ native_name}} ({{ value }})</option>
-                        {% endfor %}
-                    </select>
-                </label>
-            </div>
-            <div>
-                <label for="application-window">Application and Window<br />
-                    <select name="application-window" id="application-window" class="form-input">
-                        {% for value, name in file_to_name %}
-                            <option{% if value == 'browser' %} selected{% endif %}
-                                value="{{ value }}">{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                </label>
-            </div>
-            <button type="submit">
-                <img src="{% static "images/icons/cbicon.png" %}" width="24" height="24" alt="">
-                Create {{ label }} for Custom Button</button>
-        </form>
-        </div>
-        {% if related %}
-        <div class="content-box">
-            <h2>Often used with:</h2>
-            <ul>
-            {% for button in related %}
-                <li style="list-style-image:url({% get_static_prefix %}images/pastel-svg/16/{{ button.icon }});"><a href="{% url 'tbutton-button' button_id=button.name %}">{{ button.label|safe }}</a></li>
-            {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+	<div class="content-box bookmarklets">
+		<a href="/toolbar_button/">Toolbar Buttons</a> &raquo;
+		<a href="/toolbar_button/button_list/">Button List</a> &raquo;
+		{{ label }}
+	</div>
+	<div class="content-box">
+		<h1><img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}"
+				 title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
+			{{ label }}</h1>
+		{{ description|linebreaks }}
+
+		<div class="clear">
+			<form method="get" class="left" action="{% url 'tbutton-create' %}">
+				<input type="hidden" value="{{ button }}" name="button">
+				<input type="hidden" value="{{ application }}"
+					   name="application">
+				<input type="hidden" value="true" name="add-to-toolbar">
+				<button type="submit">
+					<img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}"
+						 title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
+					Install {{ label }}</button>
+			</form>
+			<form method="get" class="left" action="{% url 'tbutton-create' %}">
+				<input type="hidden" value="{{ button }}" name="button">
+				<input type="hidden" value="{{ application }}"
+					   name="application">
+				<input type="hidden" value="true" name="add-to-toolbar">
+				<input type="hidden" value="true" name="offer-download">
+				<button type="submit">
+					<img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}"
+						 title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
+					Download {{ label }}</button>
+			</form>
+		</div>
+		<p class="compatibility clear">
+			Compatibility:
+			{% for app in apps %}
+				<img src="{% get_static_prefix %}images/icons/{{ app }}.png"
+					 alt="">
+				{% for key, app_names in application_names.items %}
+					{% if key == app %} {{ app_names|join:", " }}{% endif %}
+				{% endfor %}
+			{% endfor %}
+		</p>
+	</div>
+	{% if related %}
+		<div class="content-box">
+			<h2>Often used with:</h2>
+			<ul>
+				{% for button in related %}
+					<li style="list-style-image:url({% get_static_prefix %}images/pastel-svg/16/{{ button.icon }});">
+						<a href="{% url 'tbutton-button' button_id=button.name %}">{{ button.label|safe }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+	{% endif %}
 {% endblock %}

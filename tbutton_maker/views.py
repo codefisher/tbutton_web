@@ -75,9 +75,12 @@ def single_configs():
     path = os.path.join(SETTINGS.get('project_root'), 'configs')
     for file_name in os.listdir(path):
         with codecs.open(os.path.join(path, file_name), encoding='utf-8') as fp:
-            ext_config = json.load(fp)
-            if ext_config.get('amo_page'):
-                result[ext_config.get('chrome_name')] = ext_config
+            try:
+                ext_config = json.load(fp)
+                if ext_config.get('amo_page'):
+                    result[ext_config.get('chrome_name')] = ext_config
+            except ValueError:
+                pass # corrupt json file
     return result
 
 LOCALE = create_locales()

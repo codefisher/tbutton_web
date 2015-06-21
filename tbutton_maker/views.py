@@ -473,7 +473,7 @@ def update(request):
             buttons = request.GET.getlist('button')
             ext_buttons = ext_config.get('buttons')
             if set(ext_buttons).issuperset(buttons):
-                data['update_url'] = ext_config.get('amo_download')
+                data['update_url'] = ext_config.get('download_link')
                 data['version'] += '.1'
                 break
     update_session = UpdateSession()

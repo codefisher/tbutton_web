@@ -466,7 +466,8 @@ def update(request):
         "days": ['%02d' % (x+1) for x in range(31)],
     }
     ext_configs = single_configs()
-    if (request.GET.get('icon-size') == 'standard'
+    if (('icon-size' not in request.GET
+                or request.GET.get('icon-size') == 'standard')
             and request.GET.get('create-toolbars') != 'true'):
         for ext_config in ext_configs.values():
             buttons = request.GET.getlist('button')

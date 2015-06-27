@@ -311,7 +311,7 @@ def create_buttons(request, query, log_creation=True):
         session = DownloadSession()
         session.query_string = query.urlencode()
         session.ip_address = get_client_ip(request)
-        session.user_agent = request.META.get("HTTP_USER_AGENT")
+        session.user_agent = request.META.get("HTTP_USER_AGENT")[0:250]
         session.save()
         for button_record in buttons_obj.buttons():
             Button.objects.create(name=button_record, session=session)

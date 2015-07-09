@@ -467,11 +467,11 @@ def update(request):
     }
     def config_order(conf):
         return len(conf.get('buttons', []))
-    ext_configs = sorted(single_configs(), key=config_order)
+    ext_configs = sorted(single_configs().values(), key=config_order)
     if (('icon-size' not in request.GET
                 or request.GET.get('icon-size') == 'standard')
             and request.GET.get('create-toolbars') != 'true'):
-        for ext_config in ext_configs.values():
+        for ext_config in ext_configs:
             buttons = request.GET.getlist('button')
             ext_buttons = ext_config.get('buttons')
             if set(ext_buttons).issuperset(buttons):

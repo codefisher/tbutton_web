@@ -465,7 +465,9 @@ def update(request):
         "year_month": "1503",
         "days": ['%02d' % (x+1) for x in range(31)],
     }
-    ext_configs = single_configs()
+    def config_order(conf):
+        return len(conf.get('buttons', []))
+    ext_configs = sorted(single_configs(), key=config_order)
     if (('icon-size' not in request.GET
                 or request.GET.get('icon-size') == 'standard')
             and request.GET.get('create-toolbars') != 'true'):

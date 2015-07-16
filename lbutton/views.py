@@ -150,6 +150,8 @@ def create_update_url(request, data, domain, url_name):
 
 def build(request, input_data):
     data = dict(input_data.items())
+    if not data:
+        return redirect(reverse('lbutton-custom'))
     if 'button_mode' not in data:
         data['button_mode'] = 0
     data["version"] = VERSION
@@ -186,8 +188,9 @@ def build(request, input_data):
     xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
     for name in ["icon-16", "icon-24", "icon-32"]:
         file_name = name if name != "icon-32" else "icon"
-        icon_data = data[name]
-        xpi.writestr("%s.png" % file_name, base64.b64decode(icon_data))
+        icon_data = data.get(name)
+        if icon_data:
+            xpi.writestr("%s.png" % file_name, base64.b64decode(icon_data))
     if "chrome" in input_data:
         output = write_crx_files(data, xpi, output)
     else:

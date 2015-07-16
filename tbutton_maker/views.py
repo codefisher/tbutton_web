@@ -40,6 +40,8 @@ class WebButton(button.SimpleButton):
         button.SimpleButton.__init__(self, folders, buttons, settings, applications)
         self._description = {}
         self._source_folder = {}
+        self.hidden_buttons = {}
+
         for folder in folders:
             head, button_id = os.path.split(folder)
             self._source_folder[button_id] = os.path.split(head)[1]
@@ -51,6 +53,9 @@ class WebButton(button.SimpleButton):
                     self._description[button_id] = description
                     if not description:
                         print("Button {} lacks description".format(button_id))
+            if "hidden" in files:
+                with open(os.path.join(folder, "hidden"), "r") as fp:
+                    self.hidden_buttons[button_id] = fp.read().strip()
               
     def get_source_folder(self, button):
         return self._source_folder[button] 
@@ -137,7 +142,7 @@ def lazy_button_list(applications, locale_str):
         button_data = []
         for button_id, apps in BUTTONS.button_applications().items():
             button_apps = applications.intersection(apps)
-            if button_apps:
+            if button_apps and button_id not in BUTTONS.hidden_buttons:
                 # TODO: we don't know if the tooltip or label has entities escaped or not.
                 button = ButtonData(
                     button_id=button_id,
@@ -232,7 +237,7 @@ def buttons_page(request, button_id, locale_name=None):
     return render(request, "tbutton_maker/button.html", data)
 
 def create_buttons(request, query, log_creation=True):
-    buttons = query.getlist("button")
+    buttons = migrate_buttons(query.getlist("button"))
     locale = query.get("button-locale", "all")
 
     extension_settings = dict(SETTINGS)
@@ -260,6 +265,7 @@ def create_buttons(request, query, log_creation=True):
     extension_settings["applications"] = applications
     update_query = query.copy()
     update_query.setlist('button-application', applications)
+    update_query.setlist('button', buttons)
     update_query["locale"] = locale
     allowed_options = {
         "button-application", "locale", "button", "create-menu",
@@ -425,12 +431,22 @@ def old_update(request):
     query.setlist('button', request.GET.get('buttons').split('_'))
     return redirect("%s?%s" % (reverse('tbutton-update'), query.urlencode()))
 
+def migrate_buttons(buttons):
+    new_buttons = []
+    for button_id in buttons:
+        if button_id in BUTTONS.hidden_buttons:
+            new_buttons.append(BUTTONS.hidden_buttons.get(button_id))
+        else:
+            new_buttons.append(button_id)
+    return new_buttons
+
 def update(request):
     version = SETTINGS.get("version")
     buttons = request.GET.getlist("button")
     applications = get_applications(request)
     args = request.GET.copy()
     args.setlist("button-application", applications)
+    args.setlist('button', migrate_buttons(buttons))
     channel = request.GET.get("channel", "stable")
     if re.search(r'[a-z]+', version) and channel == "stable":
         app_data = None
@@ -481,7 +497,7 @@ def update(request):
     update_session = UpdateSession()
     update_session.ip_address = get_client_ip(request)
     update_session.query_string = args.urlencode()
-    update_session.user_agent = request.META.get("HTTP_USER_AGENT")
+    update_session.user_agent = request.META.get("HTTP_USER_AGENT")[0:250]
     update_session.save()
     return render(request, "tbutton_maker/update.rdf",
                   data, content_type="application/xml+rdf")

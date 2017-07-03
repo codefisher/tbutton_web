@@ -497,7 +497,10 @@ def update(request):
     update_session = UpdateSession()
     update_session.ip_address = get_client_ip(request)
     update_session.query_string = args.urlencode()
-    update_session.user_agent = request.META.get("HTTP_USER_AGENT")[0:250]
+    if request.META:
+        update_session.user_agent = request.META.get("HTTP_USER_AGENT", "")[0:250]
+    else:
+        update_session.user_agent = ""
     update_session.save()
     return render(request, "tbutton_maker/update.rdf",
                   data, content_type="application/xml+rdf")

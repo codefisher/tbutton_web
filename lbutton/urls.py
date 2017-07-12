@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from tbutton_web.lbutton import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^link-button-maker/', views.index, name='lbutton-custom'),
     url(r'^link-button-create/', views.create, name='lbutton-create'),
     url(r'^link-button-make/', views.make, name='lbutton-make'),
@@ -15,4 +15,4 @@ urlpatterns = patterns('',
     
     url(r'^update-clb', views.update_legacy, name='lbutton-update-legacy'),
     url(r'^get-icons/', views.favicons, name='lbutton-custom-favicons'),
-)
+]

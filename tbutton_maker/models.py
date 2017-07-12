@@ -10,11 +10,11 @@ class DownloadSession(models.Model):
         super(DownloadSession, self).save(*args, **kwargs)
 
 class Application(models.Model):
-    session = models.ForeignKey(DownloadSession, related_name="applications")
+    session = models.ForeignKey(DownloadSession, related_name="applications", on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
 
 class Button(models.Model):
-    session = models.ForeignKey(DownloadSession, related_name="buttons")
+    session = models.ForeignKey(DownloadSession, related_name="buttons", on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
 
 class UpdateSession(models.Model):

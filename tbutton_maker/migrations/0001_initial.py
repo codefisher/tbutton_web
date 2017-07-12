@@ -45,13 +45,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='button',
             name='session',
-            field=models.ForeignKey(related_name=b'buttons', to='tbutton_maker.DownloadSession'),
+            field=models.ForeignKey(related_name=b'buttons', to='tbutton_maker.DownloadSession', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='application',
             name='session',
-            field=models.ForeignKey(related_name=b'applications', to='tbutton_maker.DownloadSession'),
+            field=models.ForeignKey(related_name=b'applications', to='tbutton_maker.DownloadSession', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

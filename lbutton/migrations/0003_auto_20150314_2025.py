@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('time', models.DateTimeField(auto_now_add=True)),
-                ('link_button', models.ForeignKey(to='lbutton.LinkButton')),
+                ('link_button', models.ForeignKey(to='lbutton.LinkButton', on_delete=models.CASCADE)),
             ],
             options={
             },

@@ -23,7 +23,7 @@ from django.db import models
 from django.contrib.sites.models import Site
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import render_to_string
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt

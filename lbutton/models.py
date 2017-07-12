@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 class LinkButtonDownload(models.Model):
     time = models.DateTimeField(auto_now_add=True)
@@ -9,7 +9,7 @@ class LinkButtonDownload(models.Model):
     
 class LinkButtonBuild(models.Model):
     time = models.DateTimeField(auto_now_add=True)
-    link_button = models.ForeignKey('LinkButton')
+    link_button = models.ForeignKey('LinkButton', on_delete=models.CASCADE)
     
 def image_path(instance, filename):
     return ("lbutton/%s/%s" % (instance.extension_id, filename.lower()))

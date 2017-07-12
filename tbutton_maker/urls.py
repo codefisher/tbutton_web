@@ -1,7 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from tbutton_web.tbutton_maker import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^custom/create-addon/$', views.create, name='tbutton-create'),
     url(r'^statistics/', views.statistics, name='tbutton-statistics'),
     url(r'^statistics/(?P<days>\d+)/', views.statistics, name='tbutton-statistics'),
@@ -25,4 +25,4 @@ urlpatterns = patterns('',
     url(r'^update.rdf', views.update, name='tbutton-update'),
     url(r'^make_button/', views.make, name='tbutton-make-button'),    
     url(r'^(?P<app_name>[\w]+)/', views.list_app_buttons, name='tbutton-make-button'),
-)
+]

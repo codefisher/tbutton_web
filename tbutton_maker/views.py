@@ -12,7 +12,7 @@ from django.contrib.sites.models import Site
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import HttpResponse, Http404, QueryDict
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Count
 from django.utils.html import escape
 from django.contrib import messages

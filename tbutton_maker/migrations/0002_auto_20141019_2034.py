@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('is_public', models.BooleanField(default=True, help_text=b'Uncheck this box to make the post effectively disappear from the site.', verbose_name=b'is public')),
                 ('is_spam', models.BooleanField(default=False, help_text=b'Check this box to flag as spam.', verbose_name=b'is spam')),
                 ('application', models.CharField(max_length=2, choices=[(b'FX', b'Firefox'), (b'TB', b'Thunderbird'), (b'OT', b'Other')])),
-                ('poster', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('poster', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
                 ('subscriptions', models.ManyToManyField(related_name=b'tbutton_request_subscriptions', null=True, to=settings.AUTH_USER_MODEL, blank=True)),
             ],
             options={
@@ -48,8 +48,8 @@ class Migration(migrations.Migration):
                 ('ip', models.GenericIPAddressField()),
                 ('is_public', models.BooleanField(default=True, help_text=b'Uncheck this box to make the post effectively disappear from the site.', verbose_name=b'is public')),
                 ('is_spam', models.BooleanField(default=False, help_text=b'Check this box to flag as spam.', verbose_name=b'is spam')),
-                ('poster', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
-                ('request', models.ForeignKey(related_name=b'comments', to='tbutton_maker.TbuttonRequest')),
+                ('poster', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
+                ('request', models.ForeignKey(related_name=b'comments', to='tbutton_maker.TbuttonRequest', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

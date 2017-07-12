@@ -28,4 +28,4 @@ class TbuttonRequest(AbstractRequest):
         return TbuttonRequestComment.objects.filter(request=self, is_public=True, is_spam=False)
        
 class TbuttonRequestComment(AbstractRequestComment):
-    request = models.ForeignKey(TbuttonRequest, related_name='comments')
+    request = models.ForeignKey(TbuttonRequest, related_name='comments', on_delete=models.CASCADE)

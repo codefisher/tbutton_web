@@ -270,9 +270,12 @@ def create_buttons(request, query, log_creation=True):
     allowed_options = {
         "button-application", "locale", "button", "create-menu",
         "create-toolbars", "icon-size", "channel"}
+    remove_keys = []
     for key in update_query.keys():
         if key not in allowed_options:
-            del update_query[key]
+            remove_keys.append(key) # can't modify the keys inside the loop
+    for key in remove_keys:
+        del update_query[key]
     extra_query = extra_update_prams()
     icons_size = settings.TBUTTON_ICON_SET_SIZES.get(
         settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))

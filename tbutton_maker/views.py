@@ -278,7 +278,7 @@ def create_buttons(request, query, log_creation=True):
         settings.TBUTTON_DEFAULT_ICONS).get(query.get("icon-size"))
     if icons_size:
         extension_settings["icon_size"] = icons_size
-    button_hash = hashlib.md5("_".join(sorted(buttons))).hexdigest()
+    button_hash = hashlib.md5("_".join(sorted(buttons)).encode('utf-8')).hexdigest()
     chrome_name = "toolbar-button-" + button_hash[0:10]
     extension_settings["chrome_name"] = chrome_name
     extension_settings["extension_id"] = button_hash + "@button.codefisher.org"
@@ -477,7 +477,7 @@ def update(request):
         "update_url": update_url,
         "extension_id": extension_id,
         # this is our update fix
-        "extension_hash": hashlib.md5("_".join(sorted(buttons))).hexdigest(),
+        "extension_hash": hashlib.md5("_".join(sorted(buttons)).encode('utf-8')).hexdigest(),
         "year_month": "1503",
         "days": ['%02d' % (x+1) for x in range(31)],
     }

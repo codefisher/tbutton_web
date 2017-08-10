@@ -18,7 +18,7 @@
 
 <ul id="button_list">
 	{% cache 600 tbutton_list applications locale %}
-	{% for button, apps, label, tooltip, icon, description in button_data %}
+	{% for button, apps, label, tooltip, icon, description, folder, button_apps in button_data %}
 		<li class="button-item">
 			<span class="button-name">
 				<span class="compatibility">

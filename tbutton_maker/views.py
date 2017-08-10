@@ -464,7 +464,7 @@ def update(request):
         path=reverse("tbutton-make-button"),
         query=args.urlencode())
 
-    extension_hash = hashlib.md5("_".join(sorted(buttons))).hexdigest()
+    extension_hash = hashlib.md5("_".join(sorted(buttons)).encode('utf-8')).hexdigest()
     extension_id_string = extension_hash + "@button.codefisher.org"
 
     extension_id = request.GET.get("item_id", extension_id_string)

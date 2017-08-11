@@ -35,5 +35,5 @@ class LinkButton(models.Model):
             return reverse("lbutton-buttons", kwargs={"page": page})
         return reverse("lbutton-buttons") 
     
-    def __unicode__(self):
+    def __str__(self):
         return self.name

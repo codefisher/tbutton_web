@@ -53,7 +53,7 @@ def create(request):
             url = "http://" + url
         elif parsed_url[0] not in ["http", "https", "ftp", "ftps", "javascript", "file"]:
             redirect(reverse('lbutton-custom'))
-        button_id = "lbutton-%s-%s" % (hashlib.md5(url).hexdigest(), time.strftime("%y%m%d"))
+        button_id = "lbutton-%s-%s" % (hashlib.md5(url.encode('utf-8')).hexdigest(), time.strftime("%y%m%d"))
         icon_type = request.POST.get("icon-type")
         icon_data = {}
         if icon_type == "default":
@@ -116,7 +116,7 @@ def create(request):
             data["chrome"] = True
         data.update(icon_data)
         url_data = urlencode(data)
-        key = 'lbytton-%s' % hashlib.sha1(url_data).hexdigest()
+        key = 'lbytton-%s' % hashlib.sha1(url_data.encode('utf-8')).hexdigest()
         cache.set(key, url_data, 3*60*60)
         request.session["lbutton-key"] = key
         download_session = LinkButtonDownload(query_string=request.POST.urlencode(), link=url, title=request.POST.get("label"))

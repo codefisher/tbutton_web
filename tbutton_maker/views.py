@@ -301,7 +301,7 @@ def create_buttons(request, query, log_creation=True):
         buttons_obj = build.build_extension(
             extension_settings, output=output, button_locales=LOCALE)
     except build.ExtensionConfigError as e:
-        messages.add_message(request, messages.ERROR, e.message)
+        messages.add_message(request, messages.ERROR, e)
         url = "".join((reverse("tbutton-custom", kwargs={}),
                        "?", query.urlencode()))
         return redirect(url)

@@ -461,18 +461,18 @@ def update_legacy(request):
 
 @csrf_exempt
 def favicons(request):
-    if not request.GET.get("url"):
-        return HttpResponse("fail0")
-    url = request.GET.get("url")
+    if not request.POST.get("url"):
+        return HttpResponse("fail")
+    url = request.POST.get("url")
     parsed_url = urlparse(url)
     if parsed_url[0] == "":
         url = "http://" + url
     elif parsed_url[0] not in ["http", "https", "ftp", "ftps", "javascript", "file"]:
-        return HttpResponse("fail1")
+        return HttpResponse("fail")
     sizes = (16, 24, 32)
     icons = get_sized_icons(url, sizes)
     if icons is None:
-        return HttpResponse("fail2")
+        return HttpResponse("fail")
     tags = []
     for size in sizes:
         value = io.BytesIO()

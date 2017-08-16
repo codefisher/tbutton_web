@@ -185,8 +185,8 @@ def build(request, input_data):
                 for size in [16, 24, 32]:
                     icon_path = os.path.join(settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
                     if os.path.exists(icon_path):
-                        with open(icon_path) as fp:
-                            data["icon-%s" % size] = base64.encodebytes(fp.read())
+                        with open(icon_path, 'rb') as fp:
+                            data["icon-%s" % size] = base64.b64encode(fp.read())
     data.update({
         "home_page": "https://%s%s" % (domain, reverse("lbutton-custom")),
         # firefox max version number

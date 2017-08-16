@@ -1,8 +1,12 @@
+if(typeof(browser) === 'undefined') {
+	var browser = chrome;
+}
+
 // Saves options to chrome.storage
 function save_options() {
   var mode = document.getElementById('mode').value;
   var url = document.getElementById('url').value;
-  chrome.storage.sync.set({
+  browser.storage.sync.set({
     action_url: url,
     action_mode: mode
   }, function() {
@@ -16,7 +20,7 @@ function save_options() {
 }
 
 function restore_options() {
-  chrome.storage.sync.get({
+  browser.storage.sync.get({
     action_url: "{{ button_url|escapejs }}",
     action_mode: {{ button_mode }}
   }, function(items) {

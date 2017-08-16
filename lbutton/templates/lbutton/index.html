@@ -39,9 +39,6 @@
   <label for="label">Button Label:
    <input type="text" name="label" id="label" value="MySite.com" onchange="setOtherLabels(this);" onfocus="focusSet(this, 'MySite.com');" onblur="blurSet(this, 'MySite.com');">
   </label>
-  <label for="tooltip">Button Tooltip:
-   <input type="text" name="tooltip" id="tooltip" value="Open MySite.com" onfocus="focusSet(this, 'Open MySite.com');" onblur="blurSet(this, 'Open MySite.com');">
-  </label>
   <p>
    The extension needs a name, so please chose one for your version.
   </p>
@@ -119,13 +116,8 @@
                 The links can open in a number of different ways.  This can be changed latter in the options window.
              </p>
            <div>
-           <label for="open-default">
-               <input type="radio" value="0" checked="checked" id="open-default" name="open-method">  Open in current tab, and new tab on middle click.
-           </label>
-           </div>
-           <div>
            <label for="open-newtab">
-               <input type="radio" value="1" id="open-newtab" name="open-method">  Always open in new tab.
+               <input type="radio" checked value="1" id="open-newtab" name="open-method">  Always open in new tab.
            </label>
            </div>
            <div>
@@ -145,10 +137,18 @@
 					Offer for download instead of installing.
 			</label>
 		</div>
+		<div class="form-field">
+			<label>
+				Build for:
+				<select name="application">
+					<option value="firefox">Firefox</option>
+					<option value="firefox-legacy">Firefox Legacy</option>
+					<option value="chrome">Chrome</option>
+				</select>
+		</div>
 	</fieldset>
 	<div>
-	 <input type="submit" name="firefox" value="Create for Firefox">
-	 &nbsp; <input type="submit" name="chrome" value="Create for Chrome">
+		<input type="submit" value="Create">
 	</div>
 </form>
 

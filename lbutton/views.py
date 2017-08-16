@@ -6,8 +6,11 @@ import io
 import hashlib
 import os
 import time
+import datetime
 import json
+import random
 import tempfile
+import requests
 from array import array
 from subprocess import Popen, PIPE
 
@@ -31,13 +34,14 @@ from django.core.cache import cache
 from django.utils.html import escape
 from django.utils.encoding import force_str
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
+import jwt #for signing extensions
 
 from codefisher_apps.favicon_getter.views import get_sized_icons
 from mozbutton_sdk.builder.app_versions import get_app_versions
 from mozbutton_sdk.builder.util import extra_update_prams
 from tbutton_web.lbutton.models import LinkButtonDownload, LinkButton, LinkButtonBuild
 
-VERSION = "1.1.0"
+VERSION = "1.2.{}"
 
 def index(request, template_name="lbutton/index.html"):
     data = {
@@ -63,7 +67,7 @@ def create(request):
             for size in [16, 24, 32]:
                 icon_path = os.path.join(settings.BASE_DIR, settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
                 if os.path.exists(icon_path):
-                    with open(icon_path) as fp:
+                    with open(icon_path, 'rb') as fp:
                         icon_data["icon-%s" % size] = base64.encodestring(fp.read())
         elif icon_type == "favicon":
             icons = get_sized_icons(url, [16, 24, 32])
@@ -109,7 +113,6 @@ def create(request):
             "extension_uuid": "%s@codefisher.org" % button_id,
             "name": force_str(request.POST.get("title")),
             "button_label": force_str(request.POST.get("label")),
-            "button_tooltip": force_str(request.POST.get("tooltip")),
             "offer-download": request.POST.get("offer-download") == "true",
         }
         if "chrome" in request.POST:
@@ -137,6 +140,11 @@ def create(request):
 def make(request):
     return build(request, request.GET)
 
+def get_version():
+    now = datetime.datetime.utcnow()
+    seconds = int(time.mktime(now.timetuple()))
+    return VERSION.format("{}.{}".format(int(seconds//65535), int(seconds%65535)))
+
 def create_update_url(request, data, domain, url_name):
     update_query = QueryDict("").copy()
     update_query.update(data)
@@ -154,7 +162,7 @@ def build(request, input_data):
         return redirect(reverse('lbutton-custom'))
     if 'button_mode' not in data:
         data['button_mode'] = 0
-    data["version"] = VERSION
+    data["version"] = get_version()
     domain = Site.objects.get_current().domain
     icon_type = data.get("icon_type", "custom")
     if icon_type != "custom":
@@ -178,7 +186,7 @@ def build(request, input_data):
                     icon_path = os.path.join(settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
                     if os.path.exists(icon_path):
                         with open(icon_path) as fp:
-                            data["icon-%s" % size] = base64.encodestring(fp.read())
+                            data["icon-%s" % size] = base64.encodebytes(fp.read())
     data.update({
         "home_page": "https://%s%s" % (domain, reverse("lbutton-custom")),
         # firefox max version number
@@ -191,11 +199,16 @@ def build(request, input_data):
         icon_data = data.get(name)
         if icon_data:
             xpi.writestr("%s.png" % file_name, base64.b64decode(icon_data))
-    if "chrome" in input_data:
+    application = input_data.get('application')
+    if application == "chrome":
         output = write_crx_files(data, xpi, output)
-    else:
+    elif application == "firefox-legacy":
         write_xpi_files(data, xpi)
         xpi.close()
+    else:
+        result = write_webextension_files(data, xpi, output)
+        if result:
+            output = result
     return get_xpi_response(data.get('offer-download'), data, output, "chrome" not in  input_data)
 
 def get_entries_for_page(paginator, page):
@@ -236,7 +249,7 @@ def button_update(request):
     button = request.GET.get('button', '')
     domain = Site.objects.get_current().domain
     data = {
-        "version": VERSION,
+        "version": VERSION.format(0),
         "max_version": max_version,
         "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-button-make", kwargs={"button": button}),
                 request.GET.urlencode()),
@@ -253,6 +266,44 @@ def write_xpi_files(data, xpi):
         xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     xpi.writestr(os.path.join("defaults", "preferences", "link.js"), render_to_string(os.path.join("lbutton", "preferences.js"), data).encode("utf-8"))
 
+def get_jwt():
+    now = datetime.datetime.utcnow()
+    seconds = int(time.mktime(now.timetuple()))
+    payload = {
+        'iss':  getattr(settings, 'AMO_EXTENSION_SIGN_API').get('issuer'),
+        'jti': "{}-{}".format(seconds, random.random()),
+        'iat': seconds,
+        'exp': seconds + 60,
+    }
+    secret = getattr(settings, 'AMO_EXTENSION_SIGN_API').get('secret')
+    return jwt.encode(payload, secret, algorithm='HS256').decode('utf-8')
+
+def write_webextension_files(data, xpi, output):
+    manifest = get_manifest(data)
+    for template in ["background.js", "options.js", "options.html"]:
+        xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
+    xpi.writestr("manifest.json", json.dumps(manifest, indent=4, separators=(',', ': ')))
+    xpi.close()
+    url = "https://addons.mozilla.org/api/v3/addons/{}/versions/{}/".format(
+        data.get('extension_uuid'), data.get('version'))
+    headers = {'Authorization': 'JWT ' + get_jwt()}
+    files = {'upload': ('build.xpi', output.getvalue())}
+    r = requests.put(url, headers=headers, files=files)
+    data = json.loads(r.text)
+    count = 0
+    while not data.get('files') and count < 10:
+        time.sleep(1)
+        headers = {'Authorization': 'JWT ' + get_jwt()}
+        r = requests.get(url, headers=headers)
+        data = json.loads(r.text)
+        count += 1
+    if data.get('files'):
+        url = data.get('files')[0].get('download_url')
+        headers = {'Authorization': 'JWT ' + get_jwt()}
+        r = requests.get(url, headers=headers)
+        output = io.BytesIO()
+        output.write(r.content)
+        return output
 
 def build_id(pub_key_der):
     sha = hashlib.sha256(pub_key_der).hexdigest()
@@ -265,6 +316,46 @@ def build_id(pub_key_der):
         reencoded.append(new_char)
     return "".join(reencoded)
 
+def get_manifest(data):
+
+    return {
+        "name": data["name"],
+        "description": data.get("description", "A Customized Link Toolbar Button."),
+        "applications": {
+            "gecko": {
+                "id": data.get('extension_uuid'),
+                "strict_min_version": "42.0"
+            }
+        },
+        "version": data.get('version'),
+        "icons": {
+             "32": "icon.png",
+             "24": "icon-24.png",
+             "16": "icon-16.png",
+        },
+        "background": {
+            "scripts": ["background.js"]
+        },
+        "permissions": [
+            "tabs", "http://*/*", "https://*/*", "storage"
+        ],
+        "browser_action": {
+            "browser_style": True,
+            "default_title": data["button_label"],
+            "default_icon": {
+                 "32": "icon.png",
+                 "24": "icon-24.png",
+                 "16": "icon-16.png",
+            },
+        },
+        "options_ui": {
+            "page": "options.html",
+            "chrome_style": True,
+            "browser_style": True
+        },
+        "manifest_version": 2
+    }
+
 def write_crx_files(data, xpi, input):
     _, pem = tempfile.mkstemp()
     Popen(["openssl", "genrsa", "-out", pem, "2048"], stdout=PIPE).stdout.read()
@@ -272,32 +363,7 @@ def write_crx_files(data, xpi, input):
     # Convert the PEM key to DER (and extract the public form) for inclusion in the CRX header
     derkey = Popen(["openssl", "rsa", "-pubout", "-inform", "PEM", "-outform", "DER", "-in", pem], stdout=PIPE).stdout.read()
 
-    manifest = {
-        "name": data["name"],
-         "description": data.get("description", "A Customized Link Toolbar Button."),
-         "version": VERSION,
-         "icons": {
-              "128": "icon.png",
-              "24": "icon-24.png",
-              "16": "icon-16.png",
-         },
-         "background": {
-             "scripts": ["background.js"]
-         },
-         "permissions": [
-             "tabs", "http://*/*", "https://*/*", "storage"
-         ],
-         "browser_action": {
-             "default_title": data["button_tooltip"],
-             "default_icon": "icon-16.png",
-         },
-         "options_page": "options.html",
-         "options_ui": {
-              "page": "options.html",
-              "chrome_style": True,
-         },
-         "manifest_version": 2
-    }
+    manifest = get_manifest(data)
     if "update_url" in data:
         manifest["update_url"] = data["update_url"] + "&extension_uuid=" + build_id(derkey)
     else:
@@ -348,7 +414,7 @@ def button_make(request, button):
     update_query = request.GET.copy()
     update_query.update({"button": button})
     data = {
-        "version": VERSION,
+        "version": get_version(),
         "button_id": button_obj.chrome_name,
         "button_url": button_obj.url,
         "description": button_obj.description,
@@ -357,7 +423,6 @@ def button_make(request, button):
         "extension_uuid": extension_uuid,
         "name": button_obj.name,
         "button_label": button_obj.label,
-        "button_tooltip": button_obj.tooltip,
         "home_page": "https://%s%s" % (domain, reverse("lbutton-buttons")),
         "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.0"),
         "update_url": create_update_url(request, update_query, domain, "lbutton-button-update")
@@ -380,7 +445,7 @@ def update(request):
     max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
     domain = Site.objects.get_current().domain
     data = {
-        "version": VERSION,
+        "version": VERSION.format(0),
         "max_version": max_version,
         "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-make"),
                 request.GET.urlencode()),

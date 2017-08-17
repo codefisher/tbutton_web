@@ -284,7 +284,7 @@ def write_webextension_files(data, xpi, output):
         xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     xpi.writestr("manifest.json", json.dumps(manifest, indent=4, separators=(',', ': ')))
     xpi.close()
-    """
+
     url = "https://addons.mozilla.org/api/v3/addons/{}/versions/{}/".format(
         data.get('extension_uuid'), data.get('version'))
     headers = {'Authorization': 'JWT ' + get_jwt()}
@@ -305,7 +305,6 @@ def write_webextension_files(data, xpi, output):
         output = io.BytesIO()
         output.write(r.content)
         return output
-    """
 
 def build_id(pub_key_der):
     sha = hashlib.sha256(pub_key_der).hexdigest()
@@ -398,13 +397,13 @@ def write_crx_files(data, xpi, input):
     
 def get_xpi_response(offer_download, data, output, firefox=True,):
     data["file_type"] = "xpi" if firefox else "crx"
-    #if offer_download or not firefox:
-    response = HttpResponse(output.getvalue(), content_type="application/octet-stream")
-    response['Content-Disposition'] = 'attachment; filename=%(button_id)s.%(file_type)s' % data
-    #else:
-    #    content_type = "application/x-xpinstall" if firefox else "application/x-chrome-extension"
-    #    response = HttpResponse(output.getvalue(), content_type=content_type)
-    #    response['Content-Disposition'] = 'filename=%(button_id)s.%(file_type)s' % data
+    if offer_download or not firefox:
+        response = HttpResponse(output.getvalue(), content_type="application/octet-stream")
+        response['Content-Disposition'] = 'attachment; filename=%(button_id)s.%(file_type)s' % data
+    else:
+        content_type = "application/x-xpinstall" if firefox else "application/x-chrome-extension"
+        response = HttpResponse(output.getvalue(), content_type=content_type)
+        response['Content-Disposition'] = 'filename=%(button_id)s.%(file_type)s' % data
     return response
 
 def button_make(request, button):

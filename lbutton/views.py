@@ -68,7 +68,7 @@ def create(request):
                 icon_path = os.path.join(settings.BASE_DIR, settings.DEFAULT_LINK_ICONS, '%s-%s.png' % (icon_name, size))
                 if os.path.exists(icon_path):
                     with open(icon_path, 'rb') as fp:
-                        icon_data["icon-%s" % size] = base64.encodestring(fp.read())
+                        icon_data["icon-%s" % size] = base64.b64encode(fp.read())
         elif icon_type == "favicon":
             icons = get_sized_icons(url, [16, 24, 32])
             if icons is None:
@@ -83,7 +83,7 @@ def create(request):
             for size in [16, 24, 32]:
                 if "icon-%s" % size in request.FILES:
                     have.append("icon-%s" % size)
-                    icon_data["icon-%s" % size] = base64.encodestring("".join(c for c in request.FILES["icon-%s" % size].chunks()))
+                    icon_data["icon-%s" % size] = base64.b64encode(b"".join(c for c in request.FILES["icon-%s" % size].chunks()))
             if len(have) == 0:
                 return redirect(reverse('lbutton-custom'))
             elif len(have) != 3:
@@ -95,7 +95,7 @@ def create(request):
                         png = io.BytesIO()
                         im.save(png, format='PNG')
                         imagefile.close()
-                        icon_data["icon-%s" % size] = base64.encodestring(png.getvalue())
+                        icon_data["icon-%s" % size] = base64.b64encode(png.getvalue())
         else:
             return redirect(reverse('lbutton-custom'))
         button_mode = request.POST.get("open-method", "0")

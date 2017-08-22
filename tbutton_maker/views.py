@@ -29,9 +29,18 @@ from codefisher_apps.downloads.models import DownloadGroup
 SETTINGS = dict(config)
 util.apply_settings_files(SETTINGS, settings.TBUTTON_CONFIG)
 
-ButtonData = namedtuple(
+ButtonDataTuple = namedtuple(
     'ButtonData', ['button_id', 'apps', 'label', 'tooltip',
                    'icons', 'description', 'folder', 'button_apps'])
+
+class ButtonData(ButtonDataTuple):
+
+    def is_legacy(self):
+        return BUTTONS.is_legacy(self.button_id)
+
+    def amo_page(self):
+        return BUTTONS.amo_page(self.button_id)
+
 LocaleData = namedtuple(
     'LocaleData', ['locale_code', 'name', 'native_name', 'country'])
 
@@ -190,6 +199,13 @@ def index(request, locale_name=None, applications='browser',
         return data
     return render(request, template_name, data)
 
+def webextensions(request):
+    data = index(request, locale_name=None, applications='browser',
+          template_name=None)
+    data["button_data"] = (button for button in data["button_data"]() if button.amo_page())
+    data["webextension"] = True
+    return render(request, 'tbutton_maker/list.html', data)
+
 def buttons_page(request, button_id, locale_name=None):
     if button_id not in BUTTONS:
         raise Http404
@@ -225,6 +241,9 @@ def buttons_page(request, button_id, locale_name=None):
         "label": locale_str("label", button_id),
         "tooltip": locale_str("tooltip", button_id),
         "icon": BUTTONS.get_icons(button_id),
+        "legacy": BUTTONS.is_legacy(button_id),
+        "amo_page": BUTTONS.amo_page(button_id),
+        "amo_download": BUTTONS.download_url(button_id),
         "description": BUTTONS.description(button_id),
         "local_data": local_data,
         "locale": locale_name,

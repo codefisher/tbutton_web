@@ -12,6 +12,10 @@
 
 {% block content %}
 
+	<p>
+	This tool can not create extensions that will support Firefox 57+.  You should look though the button list for those that are marked as compatible.
+	</p>
+
 	<form onsubmit="submitingButtonMaker();" method="get"
 		  action="{% url 'tbutton-create' %}" id="tbutton-form"
 		  class="form-field">

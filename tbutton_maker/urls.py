@@ -14,6 +14,8 @@ urlpatterns = [
         views.suggestions, name='tbutton-suggestions'),
     url(r'^button_list/$',
         views.list_buttons, name='tbutton-list'),
+    url(r'^webextensions/$',
+        views.webextensions, name='tbutton-webextensions'),
     url(r'^button_list/(?P<locale_name>[a-z]{2}(-[A-Z]{2})?)/$',
         views.list_buttons, name='tbutton-list'),
     url(r'^button_list/(?P<locale_name>[a-z]{2}(-[A-Z]{2})?)/(?P<applications>[\w,]+)/$',

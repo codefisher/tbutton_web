@@ -21,6 +21,20 @@
 			{{ label }}</h1>
 		{{ description|linebreaks }}
 
+		{%  if amo_page %}
+			<div class="clear">
+			<form method="get" class="left" action="{{ amo_page }}">
+			<button type="submit">
+				<img src="{% get_static_prefix %}images/pastel-svg/32/{{ icon }}"
+						 title="{{ tooltip|safe }}" alt="{{ tooltip|safe }}">
+					Get {{ label }} for Firefox</button>
+			</form>
+			</div>
+			<p class="clear">
+				For all other applications:
+			</p>
+		{%  endif %}
+
 		<div class="clear">
 			<form method="get" class="left" action="{% url 'tbutton-create' %}">
 				<input type="hidden" value="{{ button }}" name="button">
@@ -53,6 +67,10 @@
 					{% if key == app %} {{ app_names|join:", " }}{% endif %}
 				{% endfor %}
 			{% endfor %}
+			{%  if legacy %}
+				<br />
+				This button is a legacy add-on, and can not be ported to Firefox 57+.
+			{% endif %}
 		</p>
 	</div>
 	{% if related %}

@@ -326,7 +326,7 @@ def get_manifest(data):
             "scripts": ["background.js"]
         },
         "permissions": [
-            "tabs", "http://*/*", "https://*/*", "storage"
+            "tabs", "activeTab", "storage"
         ],
         "homepage_url": data["home_page"],
         "author": "Michael Buckley",

@@ -140,21 +140,12 @@ def create(request):
 def make(request):
     return build(request, request.GET)
 
-def get_version():
+def get_version(value=None):
+    if value is not None:
+        return VERSION.format(value)
     now = datetime.datetime.utcnow()
     seconds = int(time.mktime(now.timetuple()))
     return VERSION.format("{}.{}".format(int(seconds//65535), int(seconds%65535)))
-
-def create_update_url(request, data, domain, url_name):
-    update_query = QueryDict("").copy()
-    update_query.update(data)
-    for key in ['offer-download', 'icon-16', 'icon-24', 'icon-32']:
-        if key in update_query:
-            del update_query[key]
-    if "chrome" in request.GET:
-        return "https://%s%s?%s" % (domain, reverse(url_name), update_query.urlencode())
-    extra_query = extra_update_prams()
-    return "https://%s%s?%s&amp;%s" % (domain, reverse(url_name), escape(update_query.urlencode()), escape(extra_query))
 
 def build(request, input_data):
     data = dict(input_data.items())
@@ -166,7 +157,6 @@ def build(request, input_data):
     domain = Site.objects.get_current().domain
     icon_type = data.get("icon_type", "custom")
     if icon_type != "custom":
-        data["update_url"] = create_update_url(request, data, domain, "lbutton-update")
         if "icon-16" not in data:
             if icon_type == "favicon":
                 icons = get_sized_icons(data["button_url"], [16, 24, 32])
@@ -251,8 +241,6 @@ def button_update(request):
     data = {
         "version": VERSION.format(0),
         "max_version": max_version,
-        "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-button-make", kwargs={"button": button}),
-                request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
     if "chrome" in request.GET:
@@ -340,6 +328,8 @@ def get_manifest(data):
         "permissions": [
             "tabs", "http://*/*", "https://*/*", "storage"
         ],
+        "homepage_url": data["home_page"],
+        "author": "Michael Buckley",
         "browser_action": {
             "browser_style": True,
             "default_title": data["button_label"],
@@ -365,10 +355,6 @@ def write_crx_files(data, xpi, input):
     derkey = Popen(["openssl", "rsa", "-pubout", "-inform", "PEM", "-outform", "DER", "-in", pem], stdout=PIPE).stdout.read()
 
     manifest = get_manifest(data)
-    if "update_url" in data:
-        manifest["update_url"] = data["update_url"] + "&extension_uuid=" + build_id(derkey)
-    else:
-        manifest["update_url"] = ""
     for template in ["background.js", "options.js", "options.html"]:
         xpi.writestr(template, render_to_string(os.path.join("lbutton", template), data).encode("utf-8"))
     xpi.writestr("manifest.json", json.dumps(manifest, indent=4, separators=(',', ': ')))
@@ -376,7 +362,7 @@ def write_crx_files(data, xpi, input):
 
     value = input.getvalue()
     _, input_file = tempfile.mkstemp()
-    with open(input_file, "w") as fp:
+    with open(input_file, "wb") as fp:
         fp.write(value)
     
     # Sign the zip file with the private key in PEM format
@@ -384,7 +370,7 @@ def write_crx_files(data, xpi, input):
     os.remove(input_file)
     os.remove(pem)
     output = io.BytesIO()
-    output.write("Cr24")
+    output.write(b"Cr24")
     header = array("i")
     header.append(2)
     header.append(len(derkey))
@@ -409,47 +395,25 @@ def get_xpi_response(offer_download, data, output, firefox=True,):
 def button_make(request, button):
     button_obj = get_object_or_404(LinkButton, extension_id=button)
     LinkButton.objects.filter(pk=button_obj.pk).update(downloads=models.F('downloads') + 1)
-    extension_uuid = "lbutton-%s-%s@codefisher.org" % (button_obj.extension_id, time.strftime("%y%m%d"))
     offer_download = request.GET.get("offer-download") == "true"
-    domain = Site.objects.get_current().domain
-    update_query = request.GET.copy()
-    update_query.update({"button": button})
     data = {
-        "version": get_version(),
-        "button_id": button_obj.chrome_name,
-        "button_url": button_obj.url,
-        "description": button_obj.description,
-        "button_mode": int(request.GET.get("open-method", 0)),
-        "chrome_name": button_obj.chrome_name,
-        "extension_uuid": extension_uuid,
-        "name": button_obj.name,
-        "button_label": button_obj.label,
-        "home_page": "https://%s%s" % (domain, reverse("lbutton-buttons")),
-        "max_version": get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.0"),
-        "update_url": create_update_url(request, update_query, domain, "lbutton-button-update")
+        "button_id": button_obj.extension_id,
     }
-    output = io.BytesIO()
-    xpi = zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED)
-    xpi.write(button_obj.icon_16.path, "icon-16.png")
-    xpi.write(button_obj.icon_24.path, "icon-24.png")
-    xpi.write(button_obj.icon_32.path, "icon.png")
     if "chrome" in request.GET:
-        output = write_crx_files(data, xpi, output)
+        with open(os.path.join(button_obj.chrome_path, button_obj.chrome_file), 'rb') as fp:
+            output = io.BytesIO(fp.read())
     else:
-        write_xpi_files(data, xpi)
-        xpi.close()
+        with open(os.path.join(button_obj.firefox_path, button_obj.firefox_file), 'rb') as fp:
+            output = io.BytesIO(fp.read())
     session = LinkButtonBuild(link_button=button_obj)
     session.save()
     return get_xpi_response(offer_download, data, output, "chrome" not in request.GET)
         
 def update(request):
-    max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "38.*")
-    domain = Site.objects.get_current().domain
+    max_version = get_app_versions().get("{ec8030f7-c20a-464f-9b0e-13a3a9e97384}", "57.*")
     data = {
         "version": VERSION.format(0),
         "max_version": max_version,
-        "update_url":"https://%s%s?%s" % (domain, reverse("lbutton-make"),
-                request.GET.urlencode()),
         "extension_uuid": request.GET.get("extension_uuid")
     }
     if "chrome" in request.GET:

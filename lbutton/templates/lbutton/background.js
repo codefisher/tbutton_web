@@ -7,23 +7,31 @@ browser.browserAction.onClicked.addListener(function(tab) {
 		action_url: "{{ button_url|escapejs }}",
 		action_mode: {{ button_mode }}
 	}, function(items) {
-		if(items.action_url.startsWith('http')) {
-			if (items.action_mode == 1) {
-				browser.tabs.create({url: items.action_url}, function (tab) {
-				});
-			} else {
-				browser.tabs.update(tab.id, {url: items.action_url});
-			}
-		} else {
-			if (items.action_mode == 1) {
-				browser.tabs.executeScript({
-					"code": "window.open('{{ button_url|escapejs }}');"
-				});
-			} else {
-				browser.tabs.executeScript({
-					"code": "window.document.location='{{ button_url|escapejs }}';"
-				});
-			}
-		}
+		let buttonUrl = items.action_url;
+		if (buttonUrl.startsWith('http')) {
+                if (items.action_mode == 1) {
+                    browser.tabs.create({url: buttonUrl});
+                } else {
+                    browser.tabs.update({url: buttonUrl});
+                }
+            } else if (buttonUrl.startsWith('javascript:')) {
+                let code = decodeURI(buttonUrl.replace(/^javascript:/, ''));
+                if(!code.endsWith(';')) {
+                    code += ';';
+                }
+                browser.tabs.executeScript({
+                        "code": "let url = " + code + " if(url) { window.document.location=url; }"
+                });
+            } else {
+                if (items.action_mode == 1) {
+                    browser.tabs.executeScript({
+                        "code": "window.open('" + buttonUrl.replace(/'/g, "\\';") + "');"
+                    });
+                } else {
+                    browser.tabs.executeScript({
+                        "code": "window.document.location='" + buttonUrl.replace(/'/g, "\\'") + "';"
+                    });
+                }
+            }
 	});
 });

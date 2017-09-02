@@ -89,7 +89,7 @@ def create(request):
             elif len(have) != 3:
                 for size in [16, 24, 32]:
                     if "icon-%s" % size not in have:
-                        imagefile  = io.BytesIO("".join(c for c in request.FILES[have[-1]].chunks()))
+                        imagefile  = io.BytesIO(b"".join(c for c in request.FILES[have[-1]].chunks()))
                         im = Image.open(imagefile)
                         im = im.resize((size, size), Image.BICUBIC)
                         png = io.BytesIO()

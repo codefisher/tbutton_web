@@ -70,6 +70,8 @@ class WebButton(button.SimpleButton):
         return self._source_folder[button] 
 
     def description(self, button):
+        if button in self._manifests and "description" in self._manifests.get(button):
+            return self._manifests.get(button).get("description")
         return self._description.get(button)
     
 def get_buttons_obj(extension_settings, applications="all", buttons_ids="all"):

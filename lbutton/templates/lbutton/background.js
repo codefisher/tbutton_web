@@ -17,7 +17,7 @@ browser.browserAction.onClicked.addListener(function(tab) {
                     "code": "let url = " + code + " if(url) { window.document.location=url; }"
             });
         } else if(buttonUrl.startsWith('data:')) {
-            if (items.action_mode === 2) {
+            if (items.action_mode == 1) {
                 browser.tabs.executeScript({
                     "code": "window.open('" + buttonUrl.replace(/'/g, "\\';") + "');"
                 });
@@ -27,7 +27,7 @@ browser.browserAction.onClicked.addListener(function(tab) {
                 });
             }
         } else {
-            if (items.action_mode === 2) {
+            if (items.action_mode == 1) {
                 browser.tabs.create({url: buttonUrl});
             } else {
                 browser.tabs.update({url: buttonUrl});

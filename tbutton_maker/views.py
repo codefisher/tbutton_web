@@ -113,7 +113,7 @@ def list_buttons(request, locale_name=None,
     return render(request, template_name, data)
 
 def button_key(item):
-    return item[2].lower() if item[2] else None
+    return item[2].lower() if item[2] else ""
 
 def get_local_data():
     locale_meta = LOCALE

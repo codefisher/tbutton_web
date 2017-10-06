@@ -21,7 +21,7 @@ class MakeTbuttonRequet(MakeRequest):
 class TbuttonRequestView(RequestView):
     template = 'tbutton_votes/request.html'
     request_class = TbuttonRequest
-    spam_url = 'tbutton-comment-spam'
+    spam_url = 'tbutton-request-comment-spam'
     request_url = 'tbutton-request'
     comment_form = TbuttonRequestCommentForm
     comment_anonymous_form = TbuttonRequestCommentAnonymousForm

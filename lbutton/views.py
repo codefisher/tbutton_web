@@ -212,7 +212,7 @@ def get_entries_for_page(paginator, page):
         raise e # this must be handeled
     
 def buttons(request, page=1):
-    entries_list = LinkButton.objects.all().order_by('featured', 'downloads')
+    entries_list = LinkButton.objects.all().order_by('-featured', '-downloads')
     paginator = Paginator(entries_list, 10)
     try:
         entries = get_entries_for_page(paginator, page)

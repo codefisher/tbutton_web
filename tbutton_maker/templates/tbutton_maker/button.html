@@ -30,12 +30,15 @@
 					Get {{ label }} for Firefox</button>
 			</form>
 			</div>
+            {%  if folder != "webext" %}
 			<p class="clear">
 				For all other applications:
 			</p>
+            {%  endif %}
+            <div class="clear"></div>
 		{%  endif %}
-
-		<div class="clear">
+        {% if folder != "webext" %}
+		<div>
 			<form method="get" class="left" action="{% url 'tbutton-create' %}">
 				<input type="hidden" value="{{ button }}" name="button">
 				<input type="hidden" value="{{ application }}"
@@ -72,6 +75,7 @@
 				This button is a legacy add-on, and can not be ported to Firefox 57+.
 			{% endif %}
 		</p>
+        {%  endif %}
 	</div>
 	{% if related %}
 		<div class="content-box">

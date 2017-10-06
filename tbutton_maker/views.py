@@ -51,6 +51,7 @@ class WebButton(button.SimpleButton):
         self._source_folder = {}
         self.hidden_buttons = {}
 
+
         for folder in folders:
             head, button_id = os.path.split(folder)
             self._source_folder[button_id] = os.path.split(head)[1]
@@ -107,7 +108,9 @@ def locale_str_getter(locale_name):
 
 def list_buttons(request, locale_name=None,
                  applications=None, template_name='tbutton_maker/list.html'):
-    return index(request, locale_name, applications, template_name)
+    data = index(request, locale_name=locale_name, applications=applications,
+                 template_name=None)
+    return render(request, template_name, data)
 
 def button_key(item):
     return item[2].lower() if item[2] else None
@@ -155,11 +158,13 @@ def lazy_button_list(applications, locale_str):
             button_apps = applications.intersection(apps)
             if button_apps and button_id not in BUTTONS.hidden_buttons:
                 # TODO: we don't know if the tooltip or label has entities escaped or not.
+                label = locale_str("label", button_id)
+                tooltip = locale_str("tooltip", button_id) or label
                 button = ButtonData(
                     button_id=button_id,
                     apps=sorted(apps),
-                    label=locale_str("label", button_id),
-                    tooltip=locale_str("tooltip", button_id),
+                    label=label,
+                    tooltip=tooltip,
                     icons=BUTTONS.get_icons(button_id),
                     description=BUTTONS.description(button_id),
                     folder=BUTTONS.get_source_folder(button_id),
@@ -199,6 +204,7 @@ def index(request, locale_name=None, applications='browser',
     }
     if template_name is None:
         return data
+    data["button_data"] = (button for button in data["button_data"]() if button.folder != "webext")
     return render(request, template_name, data)
 
 def webextensions(request):
@@ -206,7 +212,7 @@ def webextensions(request):
           template_name=None)
     data["button_data"] = (button for button in data["button_data"]() if button.amo_page())
     data["webextension"] = True
-    return render(request, 'tbutton_maker/list.html', data)
+    return render(request, 'tbutton_maker/web_ext.html', data)
 
 def buttons_page(request, button_id, locale_name=None):
     if button_id not in BUTTONS:
@@ -247,6 +253,7 @@ def buttons_page(request, button_id, locale_name=None):
         "amo_page": BUTTONS.amo_page(button_id),
         "amo_download": BUTTONS.download_url(button_id),
         "description": BUTTONS.description(button_id),
+        "folder": BUTTONS.get_source_folder(button_id),
         "local_data": local_data,
         "locale": locale_name,
         "file_to_name": file_to_name,

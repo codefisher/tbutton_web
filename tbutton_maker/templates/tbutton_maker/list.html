@@ -14,7 +14,9 @@
 
 <a href="#" id="show-details" onclick="showButtonDetails();">Show Details</a>
 
+{% block button_heading %}
 <h2>Toolbar Button List</h2>
+{% endblock %}
 
 <ul id="button_list">
 	{% cache 600 tbutton_list applications locale %}
@@ -32,7 +34,7 @@
 				<img class="button-icon" src="{% get_static_prefix %}images/pastel-svg/32/{{ data.icons }}" title="{{ data.tooltip|safe }}" alt="{{ data.tooltip|safe }}">
 
 				{{ data.description|linebreaks }}
-				{%  if not webextension %}
+				{%  if not webextension and data.folder != "webext"%}
 					<p class="compatibility">
 					Compatibility:
 					{% for app in data.apps %}

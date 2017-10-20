@@ -42,7 +42,7 @@
 					<p class="compatibility">
 					Compatibility:
 					{% for app in data.apps %}
-						<img src="{% get_static_prefix %}images/icons/{{ data.app }}.png" alt="">
+						<img src="{% get_static_prefix %}images/icons/{{ app }}.png" alt="">
 						{% for key, app_names in application_names.items %}{% if key == app %} {{ app_names|join:", " }}{% endif %} {% endfor %}
 					{% endfor %}
 					{%  if data.is_legacy %}

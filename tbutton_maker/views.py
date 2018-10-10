@@ -313,13 +313,13 @@ def create_buttons(request, query, log_creation=True):
     chrome_name = "toolbar-button-" + button_hash[0:10]
     extension_settings["chrome_name"] = chrome_name
     extension_settings["extension_id"] = button_hash + "@button.codefisher.org"
-    update_url = "https://{domain}{path}?{query}&amp;{extra_query}"
+    '''update_url = "https://{domain}{path}?{query}&amp;{extra_query}"
     extension_settings["update_url"] = update_url.format(
         domain=Site.objects.get_current().domain,
         path=reverse("tbutton-update"),
         query=escape(update_query.urlencode()),
         extra_query=escape(extra_query)
-    )
+    )'''
     if query.get("add-to-toolbar") == "true":
         extension_settings["add_to_main_toolbar"] = buttons
         current_version_pref = "current.version." + chrome_name
